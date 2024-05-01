@@ -181,6 +181,7 @@
       CALL nl_set_io_form_auxinput13 (grid%id, 0)
       CALL nl_set_io_form_auxinput14 (grid%id, 0)
       CALL nl_set_io_form_auxinput15 (grid%id, 0)
+      CALL nl_set_io_form_auxinput18 (grid%id, 0)
 #endif
 
       ! set diffusion to zero for backward integration
@@ -435,6 +436,7 @@
       CALL nl_set_io_form_auxinput13(grid%id, grid%io_form_auxinput13)
       CALL nl_set_io_form_auxinput14(grid%id, grid%io_form_auxinput14)
       CALL nl_set_io_form_auxinput15(grid%id, grid%io_form_auxinput15)
+      CALL nl_set_io_form_auxinput18(grid%id, grid%io_form_auxinput18)
 
       ! This resets the open file handles associated with the chemistry
       ! auxinputs.  It may be a good idea to do this with other auxinputs as well.
@@ -449,6 +451,7 @@
       grid%auxinput13_oid = 0
       grid%auxinput14_oid = 0
       grid%auxinput15_oid = 0
+      grid%auxinput18_oid = 0
 #endif
     
 #if (EM_CORE == 1)
@@ -2789,6 +2792,7 @@ call wrf_message(mess)
       CALL nl_set_io_form_auxinput13 (grid%id, 0)
       CALL nl_set_io_form_auxinput14 (grid%id, 0)
       CALL nl_set_io_form_auxinput15 (grid%id, 0)
+      CALL nl_set_io_form_auxinput18 (grid%id, 0)
 #endif
 
 #if (EM_CORE == 1)

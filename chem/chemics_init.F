@@ -1,6 +1,7 @@
 !WRF:MODEL_LAYER:INITIALIZATION
 !
-   subroutine chem_init (id,chem,emis_ant,scalar,dt,bioemdt,photdt,chemdt,stepbioe, &
+   subroutine chem_init (id,chem,emis_ant,ghg_oh,      & !JianHe
+               scalar,dt,bioemdt,photdt,chemdt,stepbioe, &
                stepphot,stepchem,stepfirepl,plumerisefire_frq,z_at_w,xlat,xlong,    &
                g,aerwrf,config_flags,grid,alt,t,p,CONVFAC,ttday,tcosz,julday,gmt,   &
                tauaer1,tauaer2,tauaer3,tauaer4,                      &
@@ -124,6 +125,11 @@
    REAL,  DIMENSION( ims:ime , 1:kemit , jms:jme, num_emis_ant ) ,       &
           INTENT(INOUT   ) ::                                        &
                               emis_ant
+   !JianHe:
+   REAL,  DIMENSION( ims:ime , kms:kme , jms:jme )         ,         &
+          INTENT(INOUT   ) ::                                        &
+                              ghg_oh
+
    REAL,  DIMENSION( ims:ime , kms:kme , jms:jme, num_scalar ) ,     &
           INTENT(INOUT   ) ::                                        &
                               scalar
@@ -236,7 +242,7 @@ call wrf_message("**************************************************************
        numgas_mam = numgas
        CALL wrf_debug(15,'calling RACM/MADE/SOA-VBS with AQCHEM chemistry from chem_driver')
 !       call wrf_message("WARNING: RACM_SOA_VBS_AQCHEM_KPP chemistry option is highly experimental and not recommended for use.")
-     CASE (CO2_TRACER, GHG_TRACER )
+     CASE (CO2_TRACER, GHG_TRACER, GHG_ISOTOPE ) !JianHe
        call wrf_message("WARNING: Users interested in the GHG options should check the comments/references in header of module_ghg_fluxes")
      CASE (CBMZ_CAM_MAM3_NOAQ)
         numgas_mam = numgas
@@ -279,7 +285,7 @@ call wrf_message("**************************************************************
        CALL wrf_debug(15,'calling biomass burning')
    endif
 
-   if ( config_flags%biomass_burn_opt == 5 ) then
+   if ( config_flags%biomass_burn_opt == 5 .or. config_flags%biomass_burn_opt == 6) then  !JianHe
        CALL wrf_debug(15,'calling biomass burning for GHGs')
    endif
 
@@ -596,7 +602,7 @@ ENDIF
 !     for diagnostics purposes only!
 !write(6,*)'config_flags%chem_opt, CO2_TRACER', config_flags%chem_opt, CO2_TRACER
 
-if  ( config_flags%chem_opt==CO2_TRACER .OR. config_flags%chem_opt==GHG_TRACER )   then
+if  ( config_flags%chem_opt==CO2_TRACER .OR. config_flags%chem_opt==GHG_TRACER ) then
      call VPRM_par_initialize ( grid%rad_vprm, grid%lambda_vprm, grid%alpha_vprm, grid%resp_vprm, config_flags )
      call wrf_message("Warning: the VPRM parameters may need to be optimized depending on the season, year and region!")
      call wrf_message("The parameters provided here should be used for testing purposes only!")
@@ -604,6 +610,17 @@ end if
 ! Read parameters for the termite model and put them into wrfinput file
 if (config_flags%chem_opt .EQ. GHG_TRACER) then
    CALL termite_initialize(grid%biomt_par,grid%emit_par,config_flags)
+end if
+
+!JianHe: for ghg_oh
+if  ( config_flags%chem_opt==GHG_ISOTOPE) then
+      do j=jts,jte
+       do k=kts,kte
+        do i=its,ite
+          ghg_oh(i,k,j) = 0.
+        end do
+       end do
+      end do
 end if
 !--------------------------------------------------------------------------------------------------------
 !
@@ -1625,19 +1642,20 @@ ghg_block: IF (config_flags%gas_ic_opt==GAS_IC_GHG) THEN
        do j=jts,jte
         do k=kts,kte
          do i=its,ite
-            chem(i,k,j,p_co2_bck)=380.  ! background CO2 tracer
-            chem(i,k,j,p_co2_bio)=380.  ! A user should subtract this from the output fields!
-            chem(i,k,j,p_co2_oce)=380.   ! A user should subtract this from the output fields!
-            chem(i,k,j,p_co2_ant)=380.   ! A user should subtract this from the output fields!
-            chem(i,k,j,p_co2_tst)=380.   ! A user should subtract this from the output fields!
+            chem(i,k,j,p_co2_bck)=420.  ! background CO2 tracer
+            chem(i,k,j,p_co2_bio)=420.  ! A user should subtract this from the output fields!
+            chem(i,k,j,p_co2_oce)=420.   ! A user should subtract this from the output fields!
+            chem(i,k,j,p_co2_ant)=420.   ! A user should subtract this from the output fields!
+            chem(i,k,j,p_co2_tst)=420.   ! A user should subtract this from the output fields!
 
-            if (p_co2_bbu>1) chem(i,k,j,p_co2_bbu)=380.  ! A user should subtract this from the output fields!
+            if (p_co2_bbu>1) chem(i,k,j,p_co2_bbu)=420.  ! A user should subtract this from the output fields!
 
          enddo
         enddo
        enddo
 
 ! CO tracers:
+     if (p_co_bck.gt.1) then
        do j=jts,jte
         do k=kts,kte
          do i=its,ite
@@ -1648,21 +1666,74 @@ ghg_block: IF (config_flags%gas_ic_opt==GAS_IC_GHG) THEN
          enddo
         enddo
        enddo
+      end if
 
-! CH4 tracers:
-     IF (p_ch4_bck.gt.1) THEN
-      do j=jts,jte
-       do k=kts,kte
-        do i=its,ite
-           chem(i,k,j,p_ch4_bck)=1.77   ! background CH4 tracer
-           chem(i,k,j,p_ch4_bio)=1.77   ! A user should subtract this from the output fields!
-           chem(i,k,j,p_ch4_ant)=1.77   ! A user should subtract this from the output fields!
-           chem(i,k,j,p_ch4_bbu)=1.77   ! A user should subtract this from the output fields!
-           chem(i,k,j,p_ch4_tst)=1.77   ! A user should subtract this from the output fields!
+! CH4 tracers: 
+     !JH: skip if we have ic/bc
+     IF ((p_ch4_bck.gt.1) .AND. (.not. config_flags%have_bcs_chem ))  THEN
+          do j=jts,jte
+           do k=kts,kte
+            do i=its,ite
+           chem(i,k,j,p_ch4_bck)=1.9   ! background CH4 tracer
+           chem(i,k,j,p_ch4_bio)=1.9   ! A user should subtract this from the output fields!
+           chem(i,k,j,p_ch4_ant)=1.9   ! A user should subtract this from the output fields!
+           chem(i,k,j,p_ch4_tst)=1.9   ! A user should subtract this from the output fields!
+           if (p_ch4_bbu > 1) chem(i,k,j,p_ch4_bbu)=1.9   ! A user should subtract this from the output fields!
         enddo
        enddo
       enddo
       ENDIF
+
+      !JianHe:  
+      IF ((p_ch4_ong.gt.1) .AND. (.not. config_flags%have_bcs_chem )) THEN
+      do j=jts,jte
+       do k=kts,kte
+        do i=its,ite
+           chem(i,k,j,p_ch4_ong)=1.9   ! background CH4 tracer
+           chem(i,k,j,p_ch4_agr)=1.9   ! A user should subtract this from the output fields!
+           chem(i,k,j,p_ch4_wst)=1.9   ! A user should subtract this from the output fields!
+           chem(i,k,j,p_ch4_wet)=1.9   ! A user should subtract this from the output fields!
+        enddo
+       enddo
+      enddo
+      ENDIF
+
+      IF ((p_c13_bck.gt.1) .AND. (.not. config_flags%have_bcs_chem ))  THEN
+      do j=jts,jte
+       do k=kts,kte
+        do i=its,ite
+           chem(i,k,j,p_c13_bck)=0.02   ! background CH4 tracer
+           chem(i,k,j,p_c13_bio)=0.02   ! A user should subtract this from the output fields!
+           chem(i,k,j,p_c13_ant)=0.02   ! A user should subtract this from the output fields!
+           chem(i,k,j,p_c13_tst)=0.02   ! A user should subtract this from the output fields!
+           chem(i,k,j,p_c13_ong)=0.02   ! A user should subtract this from the output fields!
+           chem(i,k,j,p_c13_agr)=0.02   ! A user should subtract this from the output fields!
+           chem(i,k,j,p_c13_wst)=0.02   ! A user should subtract this from the output fields!
+           chem(i,k,j,p_c13_wet)=0.02
+           if (p_c13_bbu >1) chem(i,k,j,p_c13_bbu)=0.02   ! A user should subtract this from the output fields!
+
+        enddo
+       enddo
+      enddo
+      ENDIF
+
+
+      IF ((p_eth_bck.gt.1) .AND. (.not. config_flags%have_bcs_chem )) THEN
+      do j=jts,jte
+       do k=kts,kte
+        do i=its,ite
+           chem(i,k,j,p_eth_bck)=0.001   ! background eth tracer
+           chem(i,k,j,p_eth_bio)=0.001   ! A user should subtract this from the output fields!
+           chem(i,k,j,p_eth_ant)=0.001   ! A user should subtract this from the output fields!
+           chem(i,k,j,p_eth_tst)=0.001   ! A user should subtract this from the output fields!
+           chem(i,k,j,p_eth_ong)=0.001   ! A user should subtract this from the output fields!
+           if (p_eth_bbu > 1) chem(i,k,j,p_eth_bbu)=0.001   ! A user should subtract this from the output fields!
+
+        enddo
+       enddo
+      enddo
+      ENDIF
+
 
    ENDIF
 ENDIF ghg_block

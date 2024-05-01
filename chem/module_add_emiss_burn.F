@@ -448,6 +448,21 @@ CONTAINS
           enddo
           enddo
         endif
+      CASE (GHG_ISOTOPE) !JianHe
+        if( biomass_burn_opt == BIOMASSB_GHG2 ) then
+          do j=jts,jte
+          do k=kts,kte
+          do i=its,ite
+             conv_rho=r_q*4.828e-4/rho_phy(i,k,j)*dtstep/60./dz8w(i,k,j)
+             chem(i,k,j,p_co_bbu)  = chem(i,k,j,p_co_bbu)+ebu(i,k,j,p_ebu_co)*conv_rho
+             chem(i,k,j,p_eth_bbu) = chem(i,k,j,p_eth_bbu)+ebu(i,k,j,p_ebu_eth)*conv_rho
+             chem(i,k,j,p_ch4_bbu) = chem(i,k,j,p_ch4_bbu)+ebu(i,k,j,p_ebu_ch4)*conv_rho
+             chem(i,k,j,p_c13_bbu) = chem(i,k,j,p_c13_bbu)+ebu(i,k,j,p_ebu_c13)*conv_rho
+          enddo
+          enddo
+          enddo
+        endif
+
     CASE DEFAULT
        call wrf_debug(15,'nothing done with burn emissions for chem array')
     END SELECT emiss_select

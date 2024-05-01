@@ -213,6 +213,25 @@ SUBROUTINE med_before_solve_io ( grid , config_flags )
            CALL WRFU_AlarmRingerOff( grid%alarms( ialarm ), rc=rc )
          ENDIF
        ENDIF
+     !JianHe:
+     ELSE IF( ialarm .EQ. AUXINPUT18_ALARM .AND. config_flags%chem_opt .EQ. 18 ) THEN
+       IF( config_flags%ghg_sink .GE. 1 ) THEN
+         IF( WRFU_AlarmIsRinging( grid%alarms( ialarm ), rc=rc ) .OR.  &
+         ((config_flags%restart) .AND. ( currTime .EQ. startTime ))) THEN
+           WRITE ( message , FMT='(A,i3,A,i3)') 'Input data processed for aux input ',&
+                  ialarm - first_auxinput + 1, ' for domain ',grid%id
+           call wrf_debug(15,' CALL med_read_ghg_oh ')
+           CALL med_read_ghg_oh ( grid , config_flags )
+           CALL WRFU_AlarmRingerOff( grid%alarms( ialarm ), rc=rc )
+           call wrf_debug(15,' Back from CALL med_read_ghg_oh ')
+         ENDIF
+       ELSE
+         IF( WRFU_AlarmIsRinging( grid%alarms( ialarm ), rc=rc ) ) THEN
+           CALL med_auxinput_in ( grid, ialarm, config_flags )
+           CALL WRFU_AlarmRingerOff( grid%alarms( ialarm ), rc=rc )
+         ENDIF
+       ENDIF
+
 #endif
      ELSE IF( ialarm .EQ. AUXINPUT17_ALARM ) THEN
        IF( config_flags%qna_update .EQ. 1) THEN
@@ -2445,6 +2464,83 @@ SUBROUTINE med_read_wrf_chem_emissopt3 ( grid , config_flags )
    CALL wrf_debug (00 , 'mediation_integrate: med_read_wrf_chem_fireemissions: exit' )
 
 END SUBROUTINE med_read_wrf_chem_emissopt3
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!JianHe: read external oh profiles
+SUBROUTINE med_read_ghg_oh ( grid , config_flags )
+  ! Driver layer
+   USE module_domain    , ONLY : domain , domain_clock_get
+   USE module_io_domain
+   USE module_timing
+   USE module_configure , ONLY : grid_config_rec_type
+  ! Model layer
+   USE module_bc_time_utilities
+#ifdef DM_PARALLEL
+   USE module_dm
+#endif
+   USE module_date_time
+   USE module_utility
+
+   IMPLICIT NONE
+
+  ! Arguments
+   TYPE(domain)                               :: grid
+
+   TYPE (grid_config_rec_type) , INTENT(IN)   :: config_flags
+
+  ! Local data
+   LOGICAL, EXTERNAL                      :: wrf_dm_on_monitor
+
+   INTEGER                                :: ierr, efid
+   REAL                                   :: time, tupdate
+   real, allocatable :: dumc0(:,:,:)
+   CHARACTER (LEN=256)                    :: message, current_date_char, date_string
+   CHARACTER (LEN=256)                    :: inpname
+
+#include "wrf_io_flags.h"
+
+      CALL domain_clock_get( grid, current_timestr=current_date_char )
+
+!-----
+! use dated oh files whose length is
+! set via frames_per_auxinput18...
+
+      WRITE(message,*)'mediation_integrate: med_read_ghg_oh: Read oh for time ',TRIM(current_date_char)
+      CALL wrf_message( TRIM(message) )
+
+!
+! Code to read hourly oh files...
+!
+      if( grid%auxinput18_oid == 0 ) then
+         CALL construct_filename2a(inpname , grid%ghgoh_inname, grid%id , 2, current_date_char)
+         WRITE(message,*)'mediation_integrate: med_read_ghg_oh: Open file ',TRIM(inpname)
+         CALL wrf_message( TRIM(message) )
+         CALL open_r_dataset ( grid%auxinput18_oid, TRIM(inpname) , grid , config_flags, &
+                              "DATASET=AUXINPUT18", ierr )
+         IF ( ierr .NE. 0 ) THEN
+            WRITE( message , * ) 'med_read_ghg_oh: error opening ', TRIM( inpname )
+            CALL wrf_error_fatal( TRIM( message ) )
+         ENDIF
+      end if
+!
+! Read oh data.
+!
+      CALL wrf_debug (100 , 'mediation_integrate: calling input_auxinput18' )
+      CALL input_auxinput18 ( grid%auxinput18_oid, grid , config_flags , ierr )
+!
+! If reached the indicated number of frames in the emissions file, close it.
+!
+      grid%ohframes = grid%ohframes + 1
+      IF ( grid%ohframes >= config_flags%frames_per_auxinput18 ) THEN
+          CALL close_dataset ( grid%auxinput18_oid , config_flags , "DATASET=AUXINPUT18" )
+          grid%ohframes = 0
+          grid%auxinput18_oid = 0
+      ENDIF
+
+   CALL wrf_debug (00 , 'mediation_integrate: med_read_ghg_oh: exit' )
+
+END SUBROUTINE med_read_ghg_oh
+
 #endif
 #endif
 
@@ -2511,3 +2607,5 @@ SUBROUTINE med_read_qna_emissions ( grid , config_flags )
    CALL wrf_debug (00 , 'mediation_integrate: med_read_qna_emissions: exit' )
 
 END SUBROUTINE med_read_qna_emissions
+
+

@@ -72,7 +72,7 @@ CONTAINS
          ! stuff for GHG fluxes
          vprm_in,rad_vprm,lambda_vprm,alpha_vprm,resp_vprm,               &
          xtime,tslb,wet_in,rainc,rainnc,potevp,sfcevp,lu_index,            &
-         biomt_par,emit_par,ebio_co2oce,eghg_bio,                          &
+         biomt_par,emit_par,ebio_co2oce,eghg_bio,ghg_oh,                   &  !JianHe
          seas_flux,                                                        &
          ids,ide, jds,jde, kds,kde,                                        &
          ims,ime, jms,jme, kms,kme,                                        &
@@ -133,6 +133,9 @@ CONTAINS
    REAL, DIMENSION( ims:ime, 1:config_flags%kemit, jms:jme,num_emis_ant),&
          INTENT(IN ) ::                                                    &
          emis_ant
+   !JianHe
+   REAL, DIMENSION( ims:ime, kms:kme, jms:jme),              &
+         INTENT(IN ) :: ghg_oh
    REAL, DIMENSION( ims:ime,  kms:kme, jms:jme,num_emis_vol),              &
          INTENT(INOUT ) ::                                                 &
          emis_vol
@@ -632,6 +635,7 @@ CONTAINS
            config_flags%biomass_burn_opt == BIOMASSB_T1_MOZCART  .OR. &
            config_flags%biomass_burn_opt == BIOMASSB_MOZ  .OR. &
            config_flags%biomass_burn_opt == BIOMASSB_GHG  .OR. &
+           config_flags%biomass_burn_opt == BIOMASSB_GHG2 .OR. & !JianHe
            config_flags%biomass_burn_opt == BIOMASSB ) then
         IF ( ktau==1 ) then
            do_plumerisefire = .true.
@@ -784,7 +788,7 @@ CONTAINS
 !!! ***********   FIRE AND CHEM ****************************************
 !
     fire_select:  SELECT CASE(config_flags%biomass_burn_opt)
-     CASE (BIOMASSB,BIOMASSB_MOZC,BIOMASSB_MOZ,BIOMASSB_T1_MOZCART,BIOMASSB_GHG)
+     CASE (BIOMASSB,BIOMASSB_MOZC,BIOMASSB_MOZ,BIOMASSB_T1_MOZCART,BIOMASSB_GHG,BIOMASSB_GHG2) !JianHe
 !      if( do_plumerisefire )then
 !         CALL wrf_debug(15,'fire emissions: calling biomassb')
 !         write(0,*)ktau,stepfirepl
@@ -1078,7 +1082,7 @@ CONTAINS
           end do
        end do
 !
-    CASE(CO2_TRACER,GHG_TRACER)  ! for ghg_tracer package
+    CASE(CO2_TRACER,GHG_TRACER) ! for ghg_tracer package 
 
       ! Update the biospheric CO2 fluxes
    CALL VPRM(            ids,ide, jds,jde,                   &
@@ -1126,9 +1130,24 @@ CONTAINS
       CALL add_ghg_fluxes(  ids,ide, jds,jde, kds,kde,          &
                             ims,ime, jms,jme, kms,kme,          &
                             its,ite, jts,jte, kts,kte,          &
-
                             dtstep,dz8w,config_flags,rho_phy,   &
-                            chem,emis_ant,eghg_bio,ebio_co2oce  )
+                            t_phy,chem,emis_ant, &
+                            eghg_bio=eghg_bio, &
+                            ebio_co2oce=ebio_co2oce  )
+   END IF
+
+   !JianHe: currently, we do not include vprm for this option
+   !Maybe in the future, we can???
+   CASE(GHG_ISOTOPE)  
+   ! Add all the GHG fluxes to chem species, this step is for both
+   ! anthropogenic and biospheric fluxes
+   IF (config_flags%emiss_inpt_opt==16) THEN
+      CALL add_ghg_fluxes(  ids,ide, jds,jde, kds,kde,          &
+                            ims,ime, jms,jme, kms,kme,          &
+                            its,ite, jts,jte, kts,kte,          &
+                            dtstep,dz8w,config_flags,rho_phy,   &
+                            t_phy,chem,emis_ant, &
+                            ghg_oh=ghg_oh  )
    END IF
 !**************************************************************************************************
     CASE (SAPRC99_KPP) !FIX FOR SAPRC07A

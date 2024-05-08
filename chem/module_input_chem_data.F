@@ -1549,6 +1549,7 @@ END SUBROUTINE bdy_chem_value_ghg
                                have_bcs_chem,                        & 
                                u, v, config_flags, alt, & 
                                t,pb,p,t0,p1000mb,rcp,ph,phb,g, &
+                               qv, & !JianHe
                                spec_zone, ic,julday,    &
                                ids,ide, jds,jde, kds,kde,  & ! domain dims
                                ims,ime, jms,jme, kms,kme,  & ! memory dims
@@ -1582,6 +1583,7 @@ END SUBROUTINE bdy_chem_value_ghg
       REAL,  DIMENSION( ims:ime , kms:kme , jms:jme ), INTENT(IN   ) :: u
       REAL,  DIMENSION( ims:ime , kms:kme , jms:jme ), INTENT(IN   ) :: v
       REAL,  DIMENSION( ims:ime , kms:kme , jms:jme ), INTENT(IN   ) :: ph,phb,t,pb,p
+      REAL,  DIMENSION( ims:ime , kms:kme , jms:jme ), INTENT(IN   ), OPTIONAL :: qv  !JianHe
       REAL, INTENT (IN) :: g,rcp,t0,p1000mb
       TYPE( grid_config_rec_type ), intent(IN) :: config_flags
 
@@ -1794,7 +1796,7 @@ END SUBROUTINE bdy_chem_value_ghg
                    CALL bdy_chem_value_cam_mam(   &
                         chem(i,k,j), z(i,k,j), ic, config_flags, alt(i,k,j), convfac, g )
                 else if (i_bdy_method .eq. 666) then
-                   CALL bdy_chem_value_gcm_ghg ( chem(i,k,j),chem_bys(i,k,1),chem_btys(i,k,1),dt,ic)
+                   CALL bdy_chem_value_gcm_ghg (qv(i,k,j), chem(i,k,j),chem_bys(i,k,1),chem_btys(i,k,1),dt,ic)
                 else
                    chem(i,k,j) = chem_bv_def
                 endif
@@ -1866,7 +1868,7 @@ END SUBROUTINE bdy_chem_value_ghg
                    CALL bdy_chem_value_cam_mam(   &
                         chem(i,k,j), z(i,k,j), ic, config_flags, alt(i,k,j), convfac, g )
                 else if (i_bdy_method .eq. 666) then
-                   CALL bdy_chem_value_gcm_ghg ( chem(i,k,j),chem_bye(i,k,1),chem_btye(i,k,1),dt,ic)
+                   CALL bdy_chem_value_gcm_ghg (qv(i,k,j),chem(i,k,j),chem_bye(i,k,1),chem_btye(i,k,1),dt,ic)
                 else
                    chem(i,k,j) = chem_bv_def
                 endif
@@ -1938,7 +1940,7 @@ END SUBROUTINE bdy_chem_value_ghg
                    CALL bdy_chem_value_cam_mam(   &
                         chem(i,k,j), z(i,k,j), ic, config_flags, alt(i,k,j), convfac, g )
                 else if (i_bdy_method .eq. 666) then
-                   CALL bdy_chem_value_gcm_ghg ( chem(i,k,j),chem_bxs(j,k,1),chem_btxs(j,k,1),dt,ic)
+                   CALL bdy_chem_value_gcm_ghg (qv(i,k,j), chem(i,k,j),chem_bxs(j,k,1),chem_btxs(j,k,1),dt,ic)
                 else
                    chem(i,k,j) = chem_bv_def
                 endif
@@ -2010,7 +2012,7 @@ END SUBROUTINE bdy_chem_value_ghg
                    CALL bdy_chem_value_cam_mam(   &
                         chem(i,k,j), z(i,k,j), ic, config_flags, alt(i,k,j), convfac, g )
                 else if (i_bdy_method .eq. 666) then
-                   CALL bdy_chem_value_gcm_ghg ( chem(i,k,j),chem_bxe(j,k,1),chem_btxe(j,k,1),dt,ic)
+                   CALL bdy_chem_value_gcm_ghg (qv(i,k,j), chem(i,k,j),chem_bxe(j,k,1),chem_btxe(j,k,1),dt,ic)
                 else
                    chem(i,k,j) = chem_bv_def
                 endif
@@ -2377,12 +2379,13 @@ END SUBROUTINE bdy_chem_value_ghg
       RETURN
   END SUBROUTINE bdy_chem_value_gcm
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+!JianHe
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  SUBROUTINE bdy_chem_value_gcm_ghg ( chem, chem_b, chem_bt, dt,ic)
+  SUBROUTINE bdy_chem_value_gcm_ghg (qv, chem, chem_b, chem_bt, dt,ic)
 
     IMPLICIT NONE
 
+    REAL,    intent(IN)   :: qv
     REAL,    intent(OUT)  :: chem
     REAL,    intent(IN)   :: chem_b
     REAL,    intent(IN)   :: chem_bt
@@ -2404,6 +2407,11 @@ END SUBROUTINE bdy_chem_value_ghg
         chem = 420.
     else if( ic==p_co_bck .OR. ic==p_co_ant .OR. ic==p_co_bbu .OR. ic==p_co_tst) then
         chem = 0.1
+    else if( ic==p_ch4_bck .OR. ic==p_ch4_ant .OR. ic==p_ch4_bbu .OR. ic==p_ch4_tst &
+       .OR. ic==p_ch4_bio .OR. ic==p_ch4_ong .OR. ic==p_ch4_agr .OR. ic==p_ch4_wst &
+       .OR. ic==p_ch4_wet ) then
+       !CarbonTracker-CH4 bdy in dry air mole fractions
+        chem=max(epsilc,(chem_b + chem_bt * dt)/(1.+qv/0.622))
     else
         chem=max(epsilc,chem_b + chem_bt * dt)
     end if

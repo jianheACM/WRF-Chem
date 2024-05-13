@@ -645,7 +645,7 @@
        CALL wrf_debug(15,'Volcanic Ash mode: only doing emissions, settling, and subgrid transport in chem_driver')
     CASE (DUST)
        CALL wrf_debug(15,'Dust only mode: only doing emissions, settling, and subgrid transport chem_driver')
-    CASE (CO2_TRACER,GHG_TRACER)
+    CASE (CO2_TRACER,GHG_TRACER,GHG_ISOTOPE) !JianHe
       CALL wrf_debug(15,'Greenhouse gas mode: fluxes and transport of GHG')
     CASE DEFAULT
        if(config_flags%tracer_opt > 0 )then
@@ -878,7 +878,7 @@
               grid%TSLB, wet_in,grid%RAINC,grid%RAINNC,                                    &
               grid%potevp,grid%SFCEVP,grid%LU_INDEX,                                       &
               grid%biomt_par,grid%emit_par,grid%ebio_co2oce,                               &
-              eghg_bio,                                                                    &
+              eghg_bio,grid%ghg_oh,                                                        & !JianHe
               grid%seas_flux,                                                              &
          ! stuff for the online nh3-"WRF-NH3-CHEM" modified by renchuanhua
               grid%actnh3, grid%EFnh3,                                                     &          
@@ -920,7 +920,8 @@
            config_flags%chem_opt /= DUST .and. &
            config_flags%chem_opt /= CHEM_TRACE2 .and. &
            config_flags%chem_opt /= CO2_TRACER  .and. &
-           config_flags%chem_opt /= GHG_TRACER ) then
+           config_flags%chem_opt /= GHG_TRACER .and. &
+           config_flags%chem_opt /= GHG_ISOTOPE ) then !JianHe
          call wrf_debug(15,'calling optical driver')
          call optical_driver (grid%id,curr_secs,grid%dt,config_flags,haveaer,         &
               chem,dz8w,rri,rh,                                                       &
@@ -958,7 +959,8 @@
            config_flags%chem_opt /= DUST .and. &
            config_flags%chem_opt /= CHEM_TRACE2 .and. &
            config_flags%chem_opt /= CO2_TRACER  .and. &
-           config_flags%chem_opt /= GHG_TRACER  ) then
+           config_flags%chem_opt /= GHG_TRACER  .and. &
+           config_flags%chem_opt /= GHG_ISOTOPE ) then  !JianHe
          call wrf_debug(15,'calling photolysis driver')
          call photolysis_driver (grid%id,curr_secs,ktau,grid%dt,                      &
               config_flags,haveaer,                                                   &
@@ -1223,7 +1225,8 @@
           config_flags%chem_opt /= DUST .and. &
           config_flags%chem_opt /= CHEM_TRACE2 .and. &
           config_flags%chem_opt /= CO2_TRACER  .and. &
-          config_flags%chem_opt /= GHG_TRACER ) then
+          config_flags%chem_opt /= GHG_TRACER .and. &
+          config_flags%chem_opt /= GHG_ISOTOPE ) then  ! JianHe
 
 !
 ! chemical mechanisms

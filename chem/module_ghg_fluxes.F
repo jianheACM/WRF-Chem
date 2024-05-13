@@ -1,6 +1,7 @@
 MODULE module_ghg_fluxes
    USE module_configure
    USE module_state_description
+   USE module_ghg_chem
 
    IMPLICIT NONE
 
@@ -42,9 +43,9 @@ CONTAINS
 SUBROUTINE add_ghg_fluxes (  ids,ide, jds,jde, kds,kde,             &     ! Domain dimensions
                              ims,ime, jms,jme, kms,kme,             &     ! Memory dimensions 
                              its,ite, jts,jte, kts,kte,             &     ! Tile dimensions
-                                                                    
                              dtstep, dz8w, config_flags, rho_phy,   &
-                             chem, emis_ant,eghg_bio,ebio_co2oce    )
+                             t_phy, chem, emis_ant, &
+                             eghg_bio,ebio_co2oce,ghg_oh    )
 
 ! March-28, this subroutine adds all type of greenhouse gases to the chem species
 
@@ -58,11 +59,16 @@ INTEGER, INTENT(IN   ) ::   ids,ide, jds,jde, kds,kde,        &
 
 REAL, INTENT(IN   )    ::   dtstep
 
-REAL, DIMENSION( ims:ime,jms:jme ), INTENT(IN ) :: ebio_co2oce
+!JianHe: we set eghg_bio optional, not necessary for GHG_ISOTOPE
+REAL, DIMENSION( ims:ime,jms:jme ), OPTIONAL, INTENT(IN ) :: ebio_co2oce
 REAL, DIMENSION( ims:ime, kms:kme, jms:jme, num_chem ), INTENT(INOUT ) ::      chem
-REAL, DIMENSION( ims:ime, kms:kme, jms:jme ), INTENT(IN ) ::   rho_phy, dz8w
+REAL, DIMENSION( ims:ime, kms:kme, jms:jme ), INTENT(IN ) ::   rho_phy, dz8w, t_phy
 REAL, DIMENSION( ims:ime, kms:config_flags%kemit, jms:jme, num_emis_ant ), INTENT(IN ) :: emis_ant
-REAL, DIMENSION( ims:ime, 1,jms:jme, num_eghg_bio ), INTENT(IN ) :: eghg_bio
+REAL, DIMENSION( ims:ime, 1,jms:jme, num_eghg_bio ), OPTIONAL, INTENT(IN ) :: eghg_bio
+!JianHe
+REAL, DIMENSION( ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(IN ) :: ghg_oh
+
+REAL*8, DIMENSION( ims:ime, kms:kme, jms:jme) :: oh_in   ! mol/mol
 
 INTEGER :: i,j,k
 REAL    :: conv_rho
@@ -70,8 +76,9 @@ REAL    :: conv_rho
 call wrf_debug(15,'add_ghg_fluxes')
 
 ! For both GHG options
-DO j=jts,jte
-   DO i=its,ite
+IF(config_flags%chem_opt.ne.GHG_ISOTOPE) THEN
+  DO j=jts,jte
+     DO i=its,ite
       !  3D anthropogenic fluxes
       DO k=kts,min(config_flags%kemit,kte)
          conv_rho=8.0461e-6/rho_phy(i,k,j)*dtstep/dz8w(i,k,j)  ! 8.0461e-6=molar_mass(air)/3600, [g/mol/s]
@@ -81,18 +88,22 @@ DO j=jts,jte
 
       ! 2D biospheric fluxes:
       if (k==1) then
-         chem(i,1,j,p_co2_bio)= chem(i,1,j,p_co2_bio) + conv_rho* (eghg_bio(i,1,j,p_ebio_gee) + eghg_bio(i,1,j,p_ebio_res))   ! both uptake and release
-         chem(i,1,j,p_co2_oce)= chem(i,1,j,p_co2_oce) + conv_rho* ebio_co2oce(i,j)
+         if (present(eghg_bio)) then
+           chem(i,1,j,p_co2_bio)= chem(i,1,j,p_co2_bio) + conv_rho* (eghg_bio(i,1,j,p_ebio_gee) + eghg_bio(i,1,j,p_ebio_res))   ! both uptake and release
+         end if
+         if (present(ebio_co2oce)) then
+           chem(i,1,j,p_co2_oce)= chem(i,1,j,p_co2_oce) + conv_rho* ebio_co2oce(i,j)
+         end if
       end if
 
       ENDDO
-   ENDDO
-ENDDO
+     ENDDO
+  ENDDO
 
 ! For the GHG_TRACER option only
-IF(config_flags%chem_opt==GHG_TRACER) THEN
-    DO j=jts,jte
-       DO i=its,ite
+  IF(config_flags%chem_opt==GHG_TRACER) THEN
+     DO j=jts,jte
+        DO i=its,ite
           !  3D anthropogenic fluxes
           DO k=kts,min(config_flags%kemit,kte)
              conv_rho=8.0461e-6/rho_phy(i,k,j)*dtstep/dz8w(i,k,j)  ! 8.0461e-6=molar_mass(air)/3600, [g/mol/s]
@@ -102,15 +113,78 @@ IF(config_flags%chem_opt==GHG_TRACER) THEN
 
           ! 2D biospheric fluxes:
           if (k==1) then
-             chem(i,1,j,p_ch4_bio)= chem(i,1,j,p_ch4_bio) + conv_rho* (eghg_bio(i,1,j,p_ebio_ch4wet) + eghg_bio(i,1,j,p_ebio_ch4soil) &
+             if (present(eghg_bio)) then
+               chem(i,1,j,p_ch4_bio)= chem(i,1,j,p_ch4_bio) + conv_rho* (eghg_bio(i,1,j,p_ebio_ch4wet) + eghg_bio(i,1,j,p_ebio_ch4soil) &
                                                                        + eghg_bio(i,1,j,p_ebio_ch4term))
+             end if
           end if
 
           ENDDO
+        ENDDO
+      ENDDO
+
+  END IF
+END IF
+
+!JianHe: for the GHG_ISOTOPE option only
+IF(config_flags%chem_opt==GHG_ISOTOPE) THEN
+    DO j=jts,jte
+       DO i=its,ite
+          !  3D anthropogenic fluxes
+          DO k=kts,min(config_flags%kemit,kte)
+             conv_rho=8.0461e-6/rho_phy(i,k,j)*dtstep/dz8w(i,k,j)  !8.0461e-6=molar_mass(air)/3600, [g/mol/s]
+             !We read ant from GRAPPES
+             chem(i,k,j,p_ch4_ant)= chem(i,k,j,p_ch4_ant) + conv_rho*emis_ant(i,k,j,p_e_ch4)
+             chem(i,k,j,p_ch4_tst)= chem(i,k,j,p_ch4_tst) + conv_rho*emis_ant(i,k,j,p_e_ch4tst)  ! test ONG flux
+             chem(i,k,j,p_ch4_ong)= chem(i,k,j,p_ch4_ong) + conv_rho*emis_ant(i,k,j,p_e_ch4ong)
+             chem(i,k,j,p_ch4_agr)= chem(i,k,j,p_ch4_agr) + conv_rho*emis_ant(i,k,j,p_e_ch4agr)
+             chem(i,k,j,p_ch4_wst)= chem(i,k,j,p_ch4_wst) + conv_rho*emis_ant(i,k,j,p_e_ch4wst)
+             chem(i,k,j,p_ch4_wet)= chem(i,k,j,p_ch4_wet) + conv_rho*emis_ant(i,k,j,p_e_ch4wet)  ! we use offline
+             chem(i,k,j,p_c13_ant)= chem(i,k,j,p_c13_ant) + conv_rho*emis_ant(i,k,j,p_e_c13ant)
+             chem(i,k,j,p_c13_tst)= chem(i,k,j,p_c13_tst) + conv_rho*emis_ant(i,k,j,p_e_c13tst)
+             chem(i,k,j,p_c13_ong)= chem(i,k,j,p_c13_ong) + conv_rho*emis_ant(i,k,j,p_e_c13ong)
+             chem(i,k,j,p_c13_agr)= chem(i,k,j,p_c13_agr) + conv_rho*emis_ant(i,k,j,p_e_c13agr)
+             chem(i,k,j,p_c13_wst)= chem(i,k,j,p_c13_wst) + conv_rho*emis_ant(i,k,j,p_e_c13wst)
+             chem(i,k,j,p_c13_wet)= chem(i,k,j,p_c13_wet) + conv_rho*emis_ant(i,k,j,p_e_c13wet)  ! we use offline
+
+             chem(i,k,j,p_eth_ant)= chem(i,k,j,p_eth_ant)  + conv_rho*emis_ant(i,k,j,p_e_eth)
+             chem(i,k,j,p_eth_ong)= chem(i,k,j,p_eth_ong)  + conv_rho*emis_ant(i,k,j,p_e_ethong)             
+             chem(i,k,j,p_eth_tst)= chem(i,k,j,p_eth_tst)  + conv_rho*emis_ant(i,k,j,p_e_ethtst)
+  
+          ! 2D biospheric fluxes:
+          !JianHe: we use preseribed ch4 bio fluxes
+          if (k==1) then
+             !JianHe: we use preseribed ch4 bio fluxes
+             if (present(eghg_bio)) then
+               chem(i,1,j,p_ch4_bio)= chem(i,1,j,p_ch4_bio) + conv_rho* (eghg_bio(i,1,j,p_ebio_ch4wet) + eghg_bio(i,1,j,p_ebio_ch4soil) &
+                                                                       + eghg_bio(i,1,j,p_ebio_ch4term))
+             else
+               if (p_e_ch4nat > 1) then
+                 chem(i,1,j,p_ch4_bio)= chem(i,1,j,p_ch4_bio) + conv_rho*emis_ant(i,k,j,p_e_ch4nat)  ! wetland is in emis_ant array
+                 chem(i,1,j,p_c13_bio)= chem(i,1,j,p_c13_bio) + conv_rho*emis_ant(i,k,j,p_e_c13nat)
+                 chem(i,1,j,p_eth_bio)= chem(i,1,j,p_eth_bio) + conv_rho*emis_ant(i,k,j,p_e_ethnat)  ! biogenic
+               end if
+             end if
+          end if
+
+          ENDDO
+
        ENDDO
     ENDDO
 
+    !JianHe: placeholder, we can do oh loss, cl loss, soil uptake, etc later   
+    !calculate oh loss (ghg_sink=1)here
+    IF ((config_flags%ghg_sink > 0) .AND. present(ghg_oh)) THEN
+       call ghg_chem_driver(dtstep,config_flags,            &
+         t_phy,chem,rho_phy,ghg_oh,                       &
+         ids,ide, jds,jde, kds,kde,                                        &
+         ims,ime, jms,jme, kms,kme,                                        &
+         its,ite, jts,jte, kts,kte)
+    END IF
+
 END IF
+
+
 
 END SUBROUTINE add_ghg_fluxes
 !**************************************************************************************************

@@ -391,7 +391,7 @@ SUBROUTINE setup_gasprofile_maps(chem_opt, numgas)
   case (MOZART_MOSAIC_4BIN_AQ_KPP)
      call wrf_debug("setup_profile_maps: nothing done for mozart_mosaic_4bin_aq_kpp")
 
- case (CO2_TRACER,GHG_TRACER)
+ case (CO2_TRACER,GHG_TRACER,GHG_ISOTOPE) !JianHe
      call wrf_debug("setup_profile_maps: nothing done for the GHG options")
 
   case default
@@ -757,7 +757,8 @@ SUBROUTINE input_chem_profile (si_grid)
       si_grid%chem(ims:ime,kms:kme,jms:jme,p_oc1 ) = 1.e-2
       si_grid%chem(ims:ime,kms:kme,jms:jme,p_oc2 ) = 1.e-2
       si_grid%chem(ims:ime,kms:kme,jms:jme,p_p25 ) = 1.
-   ELSE IF ( si_grid%chem_opt==CO2_TRACER .OR. si_grid%chem_opt==GHG_TRACER ) THEN
+   ELSE IF ( si_grid%chem_opt==CO2_TRACER .OR. si_grid%chem_opt==GHG_TRACER &
+             .OR. si_grid%chem_opt==GHG_ISOTOPE ) THEN !JianHe
        ! Do nothing, since for GHGs initialization is done in chemics_init.F
    ELSE
       CALL make_chem_profile (ims, ime, jms, jme, kms, kme, num_chem, numgas, &
@@ -1515,12 +1516,22 @@ SUBROUTINE bdy_chem_value_ghg ( chem, nch )
 
 if( nch==p_co2_bck .OR. nch==p_co2_bio .OR. nch==p_co2_oce .OR. nch==p_co2_ant &
     .OR. nch==p_co2_bbu .OR. nch==p_co2_tst ) then
-    chem = 380.
-else if( nch==p_co_bck .OR. nch==p_co_ant .OR. nch==p_co_bbu .OR. nch==p_co_tst) then
+    chem = 420.
+else if( nch==p_co_bck .OR. nch==p_co_ant .OR. nch==p_co_bbu &
+    .OR. nch==p_co_tst) then
     chem = 0.1
+else if( nch==p_eth_bck .OR. nch==p_eth_ant .OR. nch==p_eth_bbu &
+    .OR. nch==p_eth_bio .OR. nch==p_eth_tst .OR. nch==p_eth_ong) then
+    chem = 1.e-3  ! 1000 ppt
 else if( nch==p_ch4_bck .OR. nch==p_ch4_bio .OR. nch==p_ch4_ant &
-         .OR. nch==p_ch4_bbu .OR. nch==p_ch4_tst ) then
-   chem = 1.77
+         .OR. nch==p_ch4_bbu .OR. nch==p_ch4_tst .OR. nch==p_ch4_ong & !JianHe
+         .OR. nch==p_ch4_agr .OR. nch==p_ch4_wst .OR. nch==p_ch4_wet) then 
+   chem = 1.9
+!JianHe: additial ic for methane c13 isotop
+else if( nch==p_c13_bck .OR. nch==p_c13_bio .OR. nch==p_c13_ant &
+         .OR. nch==p_c13_bbu .OR. nch==p_c13_tst .OR. nch==p_c13_ong & !JianHe
+         .OR. nch==p_c13_agr .OR. nch==p_c13_wst .OR. nch==p_c13_wet) then
+   chem = 0.02  ! ppm
 else
    chem = 1.e-12
 end if
@@ -1538,6 +1549,7 @@ END SUBROUTINE bdy_chem_value_ghg
                                have_bcs_chem,                        & 
                                u, v, config_flags, alt, & 
                                t,pb,p,t0,p1000mb,rcp,ph,phb,g, &
+                               qv, & !JianHe
                                spec_zone, ic,julday,    &
                                ids,ide, jds,jde, kds,kde,  & ! domain dims
                                ims,ime, jms,jme, kms,kme,  & ! memory dims
@@ -1571,6 +1583,7 @@ END SUBROUTINE bdy_chem_value_ghg
       REAL,  DIMENSION( ims:ime , kms:kme , jms:jme ), INTENT(IN   ) :: u
       REAL,  DIMENSION( ims:ime , kms:kme , jms:jme ), INTENT(IN   ) :: v
       REAL,  DIMENSION( ims:ime , kms:kme , jms:jme ), INTENT(IN   ) :: ph,phb,t,pb,p
+      REAL,  DIMENSION( ims:ime , kms:kme , jms:jme ), INTENT(IN   ), OPTIONAL :: qv  !JianHe
       REAL, INTENT (IN) :: g,rcp,t0,p1000mb
       TYPE( grid_config_rec_type ), intent(IN) :: config_flags
 
@@ -1692,7 +1705,8 @@ END SUBROUTINE bdy_chem_value_ghg
           i_bdy_method = 8
       else if (config_flags%chem_opt == CHEM_VOLC_4BIN) then
           i_bdy_method = 8
-      else if (config_flags%chem_opt==CO2_TRACER .OR. config_flags%chem_opt==GHG_TRACER) then
+      else if (config_flags%chem_opt==CO2_TRACER .OR. config_flags%chem_opt==GHG_TRACER &
+               .OR. config_flags%chem_opt==GHG_ISOTOPE ) then  !JianHe
           i_bdy_method = 16
 !         CALL wrf_message( "For GHGs strongly recommended to include LBCs from a global model!" )
       else if (config_flags%chem_opt == cbmz_cam_mam3_noaq .or. &
@@ -1707,6 +1721,7 @@ END SUBROUTINE bdy_chem_value_ghg
           end if
       end if
       if (have_bcs_chem) i_bdy_method =6
+      if ((have_bcs_chem) .and. (config_flags%chem_opt==GHG_ISOTOPE) ) i_bdy_method = 666
       if (ic .lt. param_first_scalar) i_bdy_method = 0
 
 !----------------------------------------------------------------------
@@ -1780,6 +1795,8 @@ END SUBROUTINE bdy_chem_value_ghg
                    convfac=(p(i,k,j)+pb(i,k,j))/rgasuniv/tempfac
                    CALL bdy_chem_value_cam_mam(   &
                         chem(i,k,j), z(i,k,j), ic, config_flags, alt(i,k,j), convfac, g )
+                else if (i_bdy_method .eq. 666) then
+                   CALL bdy_chem_value_gcm_ghg (qv(i,k,j), chem(i,k,j),chem_bys(i,k,1),chem_btys(i,k,1),dt,ic)
                 else
                    chem(i,k,j) = chem_bv_def
                 endif
@@ -1850,6 +1867,8 @@ END SUBROUTINE bdy_chem_value_ghg
                    convfac=(p(i,k,j)+pb(i,k,j))/rgasuniv/tempfac
                    CALL bdy_chem_value_cam_mam(   &
                         chem(i,k,j), z(i,k,j), ic, config_flags, alt(i,k,j), convfac, g )
+                else if (i_bdy_method .eq. 666) then
+                   CALL bdy_chem_value_gcm_ghg (qv(i,k,j),chem(i,k,j),chem_bye(i,k,1),chem_btye(i,k,1),dt,ic)
                 else
                    chem(i,k,j) = chem_bv_def
                 endif
@@ -1920,6 +1939,8 @@ END SUBROUTINE bdy_chem_value_ghg
                    convfac=(p(i,k,j)+pb(i,k,j))/rgasuniv/tempfac
                    CALL bdy_chem_value_cam_mam(   &
                         chem(i,k,j), z(i,k,j), ic, config_flags, alt(i,k,j), convfac, g )
+                else if (i_bdy_method .eq. 666) then
+                   CALL bdy_chem_value_gcm_ghg (qv(i,k,j), chem(i,k,j),chem_bxs(j,k,1),chem_btxs(j,k,1),dt,ic)
                 else
                    chem(i,k,j) = chem_bv_def
                 endif
@@ -1990,6 +2011,8 @@ END SUBROUTINE bdy_chem_value_ghg
                    convfac=(p(i,k,j)+pb(i,k,j))/rgasuniv/tempfac
                    CALL bdy_chem_value_cam_mam(   &
                         chem(i,k,j), z(i,k,j), ic, config_flags, alt(i,k,j), convfac, g )
+                else if (i_bdy_method .eq. 666) then
+                   CALL bdy_chem_value_gcm_ghg (qv(i,k,j), chem(i,k,j),chem_bxe(j,k,1),chem_btxe(j,k,1),dt,ic)
                 else
                    chem(i,k,j) = chem_bv_def
                 endif
@@ -2355,6 +2378,47 @@ END SUBROUTINE bdy_chem_value_ghg
       !print*,'after',chem
       RETURN
   END SUBROUTINE bdy_chem_value_gcm
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!JianHe
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  SUBROUTINE bdy_chem_value_gcm_ghg (qv, chem, chem_b, chem_bt, dt,ic)
+
+    IMPLICIT NONE
+
+    REAL,    intent(IN)   :: qv
+    REAL,    intent(OUT)  :: chem
+    REAL,    intent(IN)   :: chem_b
+    REAL,    intent(IN)   :: chem_bt
+    REAL,    intent(IN)   :: dt
+    INTEGER, intent(IN)   :: ic
+
+
+    CHARACTER (LEN=80) :: message
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!     if( nch .GT. numgas) then
+!       message = ' Input_chem_profile: wrong number of chemical species'
+!       return
+!       CALL WRF_ERROR_FATAL ( message )
+!     endif
+
+    if( ic==p_co2_bck .OR. ic==p_co2_bio .OR. ic==p_co2_oce .OR. ic==p_co2_ant &
+      .OR. ic==p_co2_bbu .OR. ic==p_co2_tst ) then
+        chem = 420.
+    else if( ic==p_co_bck .OR. ic==p_co_ant .OR. ic==p_co_bbu .OR. ic==p_co_tst) then
+        chem = 0.1
+    else if( ic==p_ch4_bck .OR. ic==p_ch4_ant .OR. ic==p_ch4_bbu .OR. ic==p_ch4_tst &
+       .OR. ic==p_ch4_bio .OR. ic==p_ch4_ong .OR. ic==p_ch4_agr .OR. ic==p_ch4_wst &
+       .OR. ic==p_ch4_wet ) then
+       !CarbonTracker-CH4 bdy in dry air mole fractions
+        chem=max(epsilc,(chem_b + chem_bt * dt)/(1.+qv/0.622))
+    else
+        chem=max(epsilc,chem_b + chem_bt * dt)
+    end if
+
+      !print*,'after',chem
+      RETURN
+  END SUBROUTINE bdy_chem_value_gcm_ghg
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

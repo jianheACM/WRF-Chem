@@ -207,6 +207,16 @@ subroutine plumerise_driver (id,ktau,dtstep,                           &
                ebu(i,kts,j,p_ebu_ch4) = ebu_in(i,1,j,p_ebu_in_ch4)
             enddo
           enddo
+       !JianHe
+       elseif ( config_flags%biomass_burn_opt == BIOMASSB_GHG2 ) then
+         do j=jts,jte
+            do i=its,ite
+               ebu(i,kts,j,p_ebu_co)  = ebu_in(i,1,j,p_ebu_in_co)
+               ebu(i,kts,j,p_ebu_eth) = ebu_in(i,1,j,p_ebu_in_eth)
+               ebu(i,kts,j,p_ebu_ch4) = ebu_in(i,1,j,p_ebu_in_ch4)
+               ebu(i,kts,j,p_ebu_c13) = ebu_in(i,1,j,p_ebu_in_c13)
+            enddo
+          enddo
        endif
 !
        do nv=1,num_ebu

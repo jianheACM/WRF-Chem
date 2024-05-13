@@ -263,6 +263,7 @@ CONTAINS
            config_flags%chem_opt /= CHEM_TRACE2    .and.                  &
            config_flags%chem_opt /= CO2_TRACER     .and.                  & 
            config_flags%chem_opt /= GHG_TRACER     .and.                  &
+           config_flags%chem_opt /= GHG_ISOTOPE    .and.                  & !JianHe
            config_flags%chem_opt /= CHEM_VASH      .and.                  &
            config_flags%chem_opt /= CHEM_VOLC_4BIN .and.                  &
            config_flags%chem_opt /= DUST           .and.                  &

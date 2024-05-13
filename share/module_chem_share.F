@@ -74,7 +74,8 @@ CONTAINS
      case (MOZART_MOSAIC_4BIN_AQ_KPP)
         get_last_gas = p_meko2
 
-     case (CO2_TRACER,GHG_TRACER) ! No gas chemistry or deposition for GHGs
+     case (CO2_TRACER,GHG_TRACER,GHG_ISOTOPE) ! No gas chemistry or deposition for GHGs
+                                              ! JianHe: include GHG_ISOTOPE
         get_last_gas = 0
      case ( CBMZ_CAM_MAM3_NOAQ, CBMZ_CAM_MAM3_AQ, CBMZ_CAM_MAM7_NOAQ, CBMZ_CAM_MAM7_AQ )
         get_last_gas = p_soag

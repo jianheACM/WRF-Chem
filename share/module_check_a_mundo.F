@@ -1538,6 +1538,65 @@
          END IF
       END IF
 
+!JianHe:
+#if (WRF_CHEM == 1)
+!-----------------------------------------------------------------------
+! If ghg_sink = 0, set io_form_auxinput18 to 0 so WRF will not try to
+! input the data; auxinput_interval must also be 0
+!-----------------------------------------------------------------------
+      IF ( model_config_rec%ghg_sink .EQ. 0 ) THEN
+         model_config_rec%io_form_auxinput18 = 0
+         DO i = 1, model_config_rec % max_dom
+            wrf_err_message = '--- NOTE: ghg_sink is 0, ' // &
+                  'setting io_form_auxinput18 = 0 and auxinput18_interval = 0 for all domains'
+            CALL wrf_debug ( 1, TRIM( wrf_err_message ) )
+            model_config_rec%auxinput18_interval(i)   = 0
+            model_config_rec%auxinput18_interval_y(i) = 0
+            model_config_rec%auxinput18_interval_d(i) = 0
+            model_config_rec%auxinput18_interval_h(i) = 0
+            model_config_rec%auxinput18_interval_m(i) = 0
+            model_config_rec%auxinput18_interval_s(i) = 0
+         ENDDO
+      ELSE
+         IF ( model_config_rec%io_form_auxinput18 .EQ. 0 ) THEN
+            wrf_err_message = '--- ERROR: If ghg_sink /= 0, io_form_auxinput18 must be /= 0'
+            CALL wrf_message ( wrf_err_message )
+            wrf_err_message = '--- Set io_form_auxinput18 in the time_control namelist (probably to 2).'
+         CALL wrf_debug ( 0, TRIM( wrf_err_message ) )
+         count_fatal_error = count_fatal_error + 1
+         END IF
+      END IF
+
+!-----------------------------------------------------------------------
+! If ghg_sink = 1, we need to make sure that two nml items are set:
+!   1. io_form_auxinput18 = 2 (only for one domain)
+!   2. auxinput18_interval = NON-ZERO (just check most coarse domain)
+!-----------------------------------------------------------------------
+
+      IF ( model_config_rec%ghg_sink .GE. 1 ) THEN
+         IF ( model_config_rec%io_form_auxinput18 .EQ. 0 ) THEN
+            wrf_err_message = '--- ERROR: If ghg_sink /= 0, io_form_auxinput18 must be /= 0'
+            CALL wrf_debug ( 0, TRIM(wrf_err_message) )
+            wrf_err_message = '--- Set io_form_auxinput18 in the time_control namelist (probably to 2).'
+            CALL wrf_debug ( 0, TRIM( wrf_err_message ) )
+            count_fatal_error = count_fatal_error + 1
+         END IF
+
+         IF ( ( model_config_rec%auxinput18_interval(1)   .EQ. 0 ) .AND. &
+              ( model_config_rec%auxinput18_interval_y(1) .EQ. 0 ) .AND. &
+              ( model_config_rec%auxinput18_interval_d(1) .EQ. 0 ) .AND. &
+              ( model_config_rec%auxinput18_interval_h(1) .EQ. 0 ) .AND. &
+              ( model_config_rec%auxinput18_interval_m(1) .EQ. 0 ) .AND. &
+              ( model_config_rec%auxinput18_interval_s(1) .EQ. 0 ) ) THEN
+            wrf_err_message = '--- ERROR: If ghg_sink /= 0, one of the auxinput18_interval settings must be /= 0'
+            CALL wrf_debug ( 0, TRIM(wrf_err_message) )
+            wrf_err_message = '--- Set auxinput18_interval_s to the same value as interval_seconds (usually a pretty good guess).'
+            CALL wrf_debug ( 0, TRIM( wrf_err_message ) )
+            count_fatal_error = count_fatal_error + 1
+         END IF
+      END IF
+#endif
+
 !-----------------------------------------------------------------------
 ! The qndropsource relies on the flag PROGN (when not running chemistry)
 ! and is always allocated when running WRF Chem.

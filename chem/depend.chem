@@ -165,7 +165,9 @@ module_vertmx_wrf.o:
 
 module_emissions_anthropogenics.o: module_aerosols_sorgam.o module_aerosols_soa_vbs.o module_aerosols_soa_vbs_het.o
 
-module_ghg_fluxes.o:
+module_ghg_fluxes.o: module_ghg_chem.o
+
+module_ghg_chem.o:
 
 module_data_sorgam.o: module_data_radm2.o
 

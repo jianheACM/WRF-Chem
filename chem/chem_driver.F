@@ -1058,6 +1058,7 @@
                  grid%h2oaj,grid%h2oai,grid%nu3,grid%ac3,grid%cor3,grid%asulf,        &
                  grid%ahno3,grid%anh3,grid%cvaro1,grid%cvaro2,grid%cvalk1,grid%cvole1,&
                  grid%cvapi1,grid%cvapi2,grid%cvlim1,grid%cvlim2,grid%dep_vel_o3,     &
+                 grid%dep_vel_ch4,grid%emis_sfc_ch4,   & !JianHe, optional
                  grid%ddlen,grid%ddflx, &
                  emis_ant,ebu_in,                                                     &
                  config_flags%sf_urban_physics,numgas,current_month,dvel,grid%snowh,  &

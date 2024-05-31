@@ -83,7 +83,7 @@ state    real  e_hcho         i+jf     emis_ant     1         Z      i5r    "E_H
 state    real  e_ald          i+jf     emis_ant     1         Z      i5r    "E_ALD"               "EMISSIONS"          "mol km^-2 hr^-1"
 state    real  e_ket          i+jf     emis_ant     1         Z      i5r    "E_KET"               "EMISSIONS"          "mol km^-2 hr^-1"
 state    real  e_ora2         i+jf     emis_ant     1         Z      i5r    "E_ORA2"              "EMISSIONS"          "mol km^-2 hr^-1"
-state    real  e_nh3          i+jf     emis_ant     1         Z      i5rh01    "E_NH3"               "EMISSIONS"          "mol km^-2 hr^-1"
+state    real  e_nh3          i+jf     emis_ant     1         Z      i5r    "E_NH3"               "EMISSIONS"          "mol km^-2 hr^-1"
 state    real  e_pm_25        i+jf     emis_ant     1         Z      i5r    "E_PM_25"             "EMISSIONS"          "ug/m3 m/s"
 state    real  e_pm_10        i+jf     emis_ant     1         Z      i5r    "E_PM_10"             "EMISSIONS"          "ug/m3 m/s"
 state    real  e_pm25i        i+jf     emis_ant     1         Z      i5r    "E_PM25I"             "EMISSION RATE OF UNIDEN. PM2.5 MASS"  "ug/m3 m/s"
@@ -275,7 +275,7 @@ state   real    e_rco_oh        i+jf    emis_ant        1       Z       i5r     
 # GHG anthropogenic emissions
 state   real    e_co2tst        i+jf    emis_ant        1       Z       i5       "E_CO2TST"      "Anthropogenic CO2 test fluxes"     "mol km^-2 hr^-1"
 state   real    e_cotst         i+jf    emis_ant        1       Z       i5       "E_COTST"       "Anthropogenic CO test fluxes"      "mol km^-2 hr^-1"
-state   real    e_ch4tst        i+jf    emis_ant        1       Z       i5       "E_CH4TST"      "Anthropogenic CH4 test fluxes"     "mol km^-2 hr^-1"
+state   real    e_ch4tst        i+jf    emis_ant        1       Z       i5r      "E_CH4TST"      "Anthropogenic CH4 test fluxes"     "mol km^-2 hr^-1"
 state   real    e_ch4ong        i+jf    emis_ant        1       Z       i5r      "E_CH4ONG"      "Oil and gas CH4 emissions"         "mol km^-2 hr^-1"
 state   real    e_ch4agr        i+jf    emis_ant        1       Z       i5r      "E_CH4AGR"      "Agricultural CH4 missions"         "mol km^-2 hr^-1"
 state   real    e_ch4wst        i+jf    emis_ant        1       Z       i5r      "E_CH4WST"      "Waste CH4 emissions"               "mol km^-2 hr^-1"
@@ -692,15 +692,15 @@ state    real  mtsa           ijm     misc        1         Z      i06r     "mts
 state    real  mswdown        ijm     misc        1         Z      i06r     "mswdown"          "Monthly SWdown"  "W/m2"
 state    real  EFmegan        ij{nm}     misc        1         -      -        "EFmegan"          "MEGAN2 Emis Factor"       "ug m^-2 hr^-1"
 # Arrays for online ammonia emissions
-state    real   EFnh3          ij       misc      1        -     i01rh01   "EFNH3"       "NH3 Emis Factor"       "ug m^-2 hr^-1"
-state    real   actnh3         imj      misc      1        Z     i01rh01d  "ACTNH3"      "The activity of NH3" "0 - 1 fraction"
-state    real   agrisoil_nh3       ij       misc      1        Z     i01rh01d  "AGRISOIL_NH3"    "The activity of NH3" "0 - 1 fraction"
-state    real   fertilizer_nh3     imj      misc      1        Z     i01rh01d  "FERTILIZER_NH3"  "The activity of NH3" "0 - 1 fraction"
-state    real   freeinten_nh3      ij       misc      1        Z     i01rh01d  "FREEINTEN_NH3"   "The activity of NH3" "0 - 1 fraction"
-state    real   graze_nh3          ij       misc      1        Z     i01rh01d  "GRAZE_NH3"       "The activity of NH3" "0 - 1 fraction"
-state    real   industry_nh3       ij       misc      1        Z     i01rh01d  "INDUSTRY_NH3"    "The activity of NH3" "0 - 1 fraction"
-state    real   residential_nh3    ij       misc      1        Z     i01rh01d  "RESIDENTIAL_NH3" "The activity of NH3" "0 - 1 fraction"
-state    real   transport_nh3      ij       misc      1        Z     i01rh01d  "TRANSPORT_NH3"   "The activity of NH3" "0 - 1 fraction"
+state    real   EFnh3          ij       misc      1        -     i01r   "EFNH3"       "NH3 Emis Factor"       "ug m^-2 hr^-1"
+state    real   actnh3         imj      misc      1        Z     i01r  "ACTNH3"      "The activity of NH3" "0 - 1 fraction"
+state    real   agrisoil_nh3       ij       misc      1        Z     i01r  "AGRISOIL_NH3"    "The activity of NH3" "0 - 1 fraction"
+state    real   fertilizer_nh3     imj      misc      1        Z     i01r  "FERTILIZER_NH3"  "The activity of NH3" "0 - 1 fraction"
+state    real   freeinten_nh3      ij       misc      1        Z     i01r  "FREEINTEN_NH3"   "The activity of NH3" "0 - 1 fraction"
+state    real   graze_nh3          ij       misc      1        Z     i01r  "GRAZE_NH3"       "The activity of NH3" "0 - 1 fraction"
+state    real   industry_nh3       ij       misc      1        Z     i01r  "INDUSTRY_NH3"    "The activity of NH3" "0 - 1 fraction"
+state    real   residential_nh3    ij       misc      1        Z     i01r  "RESIDENTIAL_NH3" "The activity of NH3" "0 - 1 fraction"
+state    real   transport_nh3      ij       misc      1        Z     i01r  "TRANSPORT_NH3"   "The activity of NH3" "0 - 1 fraction"
 
 # Input for GOCART: Background chemistry, erodible surface emissions map
 state    real  backg_oh       ikj     misc        1         -      i08r    "BACKG_OH"       "Background OH for Aerosol-GOcart option"       "volume mixing ratio"
@@ -732,7 +732,9 @@ state    real  erup_end     ij      misc        1         -      i{13}    "ERUP_
 #
 # following used for output to look at all kinds of stuff
 state    real  dep_vel_o3     ij      misc        1         -      -        "DEP_VEL"               "deposition velocities for o3"        "?"
+state    real  dep_vel_ch4    ij      misc        1         -      rh        "DEP_VEL_CH4"           "deposition velocities for ch4"        "m/s"
 state    real  cu_co_ten      ikj     misc        1         -      -        "CU_CO_TEN"             "CONV. TRANSPORT FOR CO"              "?"
+state    real  emis_sfc_ch4   ij      misc        1         -      rh        "EMIS_SFC_CH4"         "surface anthropogenic ch4 emissions"      "mol/km2/hr"
 
 # Tendency diagnostics for chemistry (chemdiag)
 #
@@ -3814,7 +3816,6 @@ state integer  STEPPHOT          -        misc     1         -      r        "ST
 state integer  STEPCHEM          -        misc     1         -      r        "STEPCHEM"              "NUMBER OF FUNDAMENTAL TIMESTEPS BETWEEN CHEM MECH CALLS"             "NA"
 state integer  STEPFIREPL        -        misc     1         -      r        "STEPFIREPL"            "NUMBER OF FUNDAMENTAL TIMESTEPS BETWEEN CALLSTO PLUMERISE FIRE ROUTINE"             "NA"
 
-                                                
 #JianHe: ch4-oh loss
 # option for ch4-oh loss in ghg option
 rconfig   integer    ghg_sink              namelist,chem        1       0  rh    "ghg_sink"     "calculate methane sinks"      ""

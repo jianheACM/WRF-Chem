@@ -372,6 +372,7 @@ CONTAINS
        &nchem,kdvel,ndvel,              & !smoke/chem variables
        &chem3d,vdep,                    &
        &frp,emis_ant_no,                &
+       &emis_ant_ch4,                   & !JianHe
        &mix_chem,enh_mix,               & !note: these arrays/flags are still under development
        &rrfs_sd,smoke_dbg,              & !end smoke/chem variables
        &tsq,qsq,cov,                    &
@@ -517,9 +518,10 @@ CONTAINS
 
 ! smoke/chemical arrays
     integer, intent(IN   ) ::   nchem, kdvel, ndvel
-    real(kind_phys), dimension(ims:ime,kms:kme,nchem), optional, intent(inout) :: chem3d
+    real(kind_phys), dimension(ims:ime,kms:kme,nchem), intent(inout) :: chem3d
     real(kind_phys), dimension(ims:ime, ndvel), optional,  intent(in)    :: vdep
     real(kind_phys), dimension(ims:ime),   optional,   intent(in)    :: frp,EMIS_ANT_NO
+    real(kind_phys), dimension(ims:ime),   optional,   intent(in)    :: EMIS_ANT_CH4  !JianHe
     !local
     real(kind_phys), dimension(kts:kte  ,nchem)      :: chem1
     real(kind_phys), dimension(kts:kte+1,nchem)      :: s_awchem1
@@ -1285,6 +1287,7 @@ CONTAINS
                   &tcd, qcd,                             &
                   &dfh,                                  &
                   &s_aw1,s_awchem1,                      &
+                  &emis_ant_ch4(i),                      & !JianHe
                   &emis_ant_no(i),                       &
                   &frp(i), rrfs_sd,                      &
                   &enh_mix, smoke_dbg                    )
@@ -1297,6 +1300,7 @@ CONTAINS
                   &tcd, qcd,                             &
                   &dfh,                                  &
                   &s_aw1,s_awchem1,                      &
+                  &emis_ant_ch4(i),                      & !JianHe
                   &zero,                                 &
                   &zero, rrfs_sd,                        &
                   &enh_mix, smoke_dbg                    )
@@ -5233,6 +5237,7 @@ ENDIF
        flt, tcd, qcd,                     &
        dfh,                               &
        s_aw, s_awchem,                    &
+       emis_ant_ch4,                      & !JianHe
        emis_ant_no, frp, rrfs_sd,         &
        enh_mix, smoke_dbg                 )
 
@@ -5247,7 +5252,7 @@ ENDIF
     real(kind_phys), dimension( kts:kte, nchem ), intent(inout) :: chem1
     real(kind_phys), dimension( kts:kte+1,nchem), intent(in) :: s_awchem
     real(kind_phys), dimension( ndvel ), intent(in) :: vd1
-    real(kind_phys), intent(in) :: emis_ant_no,frp
+    real(kind_phys), intent(in) :: emis_ant_no,frp,emis_ant_ch4 !JianHe
     logical, intent(in) :: rrfs_sd,enh_mix,smoke_dbg
 !local vars
 
@@ -5266,8 +5271,9 @@ ENDIF
     real(kind_phys), dimension(kts:kte+1) :: rhoz,khdz
     real(kind_phys), parameter :: NO_threshold    = 10.0     ! For anthropogenic sources
     real(kind_phys), parameter :: frp_threshold   = 10.0     ! RAR 02/11/22: I increased the frp threshold to enhance mixing over big fires
-    real(kind_phys), parameter :: pblh_threshold  = 100.0
-
+    real(kind_phys), parameter :: pblh_threshold  = 250.0   ! JianHe, tuning
+    real(kind_phys), parameter :: CH4_threshold   = 50.     ! For anthropogenic sources
+ 
     dztop=.5*(dz(kte)+dz(kte-1))
 
     DO k=kts,kte
@@ -5315,6 +5321,29 @@ ENDIF
           ENDIF
        ENDDO
     ENDIF
+
+    !JianHe: enhance mixing for ch4
+    !05/2024: mynn_chem_vertmx not working properly, use vermx in drydep for now
+    !IF (enh_mix ) then
+      DO k=kts+1,kte-1
+          khdz_old  = khdz(k)
+          khdz_back = pblh * 0.15 / dz(k)
+
+          !Modify based on anthropogenic emissions of CH4
+          IF ( pblh < pblh_threshold ) THEN
+             IF ( emis_ant_ch4 > CH4_threshold ) THEN
+                khdz(k) = MAX(1.1*khdz(k),sqrt((emis_ant_ch4 / CH4_threshold)) / dz(k) * rhoz(k)) ! scale such that emis = 500 --> khdz = ~3/dz*rhoz
+                !khdz(k) = MAX(khdz(k),khdz_back)
+
+                !if (k == kts+1) then
+                !  print *, "enhanced mixing: ", khdz_old, khdz_back, khdz(k)
+                !end if
+
+             ENDIF
+          ENDIF
+       ENDDO
+     !ENDIF
+
 
   !============================================
   ! Patterned after mixing of water vapor in mynn_tendencies.

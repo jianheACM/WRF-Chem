@@ -1312,6 +1312,7 @@ BENCH_START(pbl_driver_tim)
      &        ,NCHEM=num_chem,kdvel=config_flags%kdepvel                  &
      &        ,ndvel=config_flags%ndepvel                                 &
      &        ,NUM_VERT_MIX=grid%num_vert_mix                             &
+     &        ,EMIS_ANT_CH4=grid%emis_sfc_ch4                             & !JianHe
 #endif
      &        ,QNORM=grid%QNORM, fasdas=config_flags%fasdas               & !fasdas
      &        )

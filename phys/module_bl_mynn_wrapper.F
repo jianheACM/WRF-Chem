@@ -85,6 +85,7 @@ SUBROUTINE mynnedmf_wrapper_run(                 &
      &  mix_chem,chem3d,vd3d,nchem,kdvel,        &
      &  ndvel,num_vert_mix,                      &
 !     &  frp_mean,emis_ant_no,enh_mix,            & !to be included soon
+     &  emis_ant_ch4,                            & !JianHe
 #endif
 !--- end chem/smoke 
      &  Tsq,Qsq,Cov,                             &
@@ -205,6 +206,7 @@ SUBROUTINE mynnedmf_wrapper_run(                 &
       real(kind_phys), dimension(ims:ime,kms:kme,jms:jme), optional, intent(inout) ::  &
      &       qv,qc,qi,qs,qnc,qni,qnwfa,qnifa,qnbca!,o3
 
+
 !optional 2D arrays for passing into module_bl_myn.F
       real(kind_phys), allocatable, dimension(:,:) ::                                  &
      &       qc_bl2d, qi_bl2d, cldfra_bl2d, pattern_spp_pbl2d
@@ -219,8 +221,9 @@ SUBROUTINE mynnedmf_wrapper_run(                 &
 
 !smoke/chem arrays - no if-defs in module_bl_mynn.F, so must define arrays
 #if (WRF_CHEM == 1)
-      real(kind_phys), dimension(ims:ime,kms:kme,jms:jme,nchem), intent(in) :: chem3d
+      real(kind_phys), dimension(ims:ime,kms:kme,jms:jme,nchem), intent(inout) :: chem3d
       real(kind_phys), dimension(ims:ime,kdvel,jms:jme, ndvel), intent(in)  :: vd3d
+      real(kind_phys), dimension(ims:ime,jms:jme), optional, intent(in) :: emis_ant_ch4
       real(kind_phys), dimension(ims:ime,kms:kme,nchem) :: chem
       real(kind_phys), dimension(ims:ime,ndvel)         :: vd
       real(kind_phys), dimension(ims:ime)               :: frp_mean, emis_ant_no
@@ -535,6 +538,7 @@ SUBROUTINE mynnedmf_wrapper_run(                 &
      &        nchem=nchem,kdvel=kdvel,ndvel=ndvel,                     & !chem/smoke
      &        Chem3d=chem,Vdep=vd,                                     &
      &        FRP=frp_mean,EMIS_ANT_NO=emis_ant_no,                    &
+     &        EMIS_ANT_CH4=emis_ant_ch4(:,j),                          & !JianHe: optional
      &        mix_chem=mix_chem,enh_mix=enh_mix,                       &
      &        rrfs_sd=rrfs_sd,smoke_dbg=smoke_dbg,                     & !end chem/smoke
      &        tsq=tsq(:,:,j),qsq=qsq(:,:,j),cov=cov(:,:,j),            & !output
@@ -582,6 +586,19 @@ SUBROUTINE mynnedmf_wrapper_run(                 &
      &        IMS=ims,IME=ime,JMS=jms,JME=jme,KMS=kms,KME=kme,         & !input
      &        ITS=its,ITE=itf,JTS=jts,JTE=jtf,KTS=kts,KTE=kte)           !input
 !print*,"In mynn wrapper, after bl_mynn_driver"
+
+     !JianHe: update chem array
+#if (WRF_CHEM == 1)
+      if (mix_chem) then
+         do n=1,nchem
+         do k=kts,ktf
+         do i=its,itf
+            chem3d(i,k,j,n)=chem(i,k,n)
+         enddo
+         enddo
+         enddo
+      endif
+#endif
 
      !- Convert spec hum to mixing ratio:
       do k=kts,ktf

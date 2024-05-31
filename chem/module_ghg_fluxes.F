@@ -70,6 +70,9 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(IN ) :: ghg_oh
 
 REAL*8, DIMENSION( ims:ime, kms:kme, jms:jme) :: oh_in   ! mol/mol
 
+CHARACTER(LEN=256) :: message
+LOGICAL, EXTERNAL :: wrf_dm_on_monitor
+
 INTEGER :: i,j,k
 REAL    :: conv_rho
 
@@ -77,6 +80,8 @@ call wrf_debug(15,'add_ghg_fluxes')
 
 ! For both GHG options
 IF(config_flags%chem_opt.ne.GHG_ISOTOPE) THEN
+call wrf_debug(15,'default_ghg_opts')
+
   DO j=jts,jte
      DO i=its,ite
       !  3D anthropogenic fluxes
@@ -128,6 +133,63 @@ END IF
 
 !JianHe: for the GHG_ISOTOPE option only
 IF(config_flags%chem_opt==GHG_ISOTOPE) THEN
+call wrf_debug(15,'add_ghg_fluxes_for_ghg_isotope')
+
+master_proc : &
+   IF ( wrf_dm_on_monitor() ) THEN
+     write(message,*) 'check ghg_isotope num_chem: ',num_chem
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_eth_ant: ',p_eth_ant
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_eth_bio: ',p_eth_bio
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_eth_bck: ',p_eth_bck
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_eth_ong: ',p_eth_ong
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_eth_tst: ',p_eth_tst
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_eth_bbu: ',p_eth_bbu
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_ch4_ant: ',p_ch4_ant
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_ch4_bio: ',p_ch4_bio
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_ch4_bck: ',p_ch4_bck
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_ch4_bbu: ',p_ch4_bbu
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_ch4_tst: ',p_ch4_tst
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_ch4_ong: ',p_ch4_ong
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_ch4_agr: ',p_ch4_agr
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_ch4_wst: ',p_ch4_wst
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_ch4_wet: ',p_ch4_wet
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_c13_ant: ',p_c13_ant
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_c13_bio: ',p_c13_bio
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_c13_bck: ',p_c13_bck
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_c13_bbu: ',p_c13_bbu
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_c13_tst: ',p_c13_tst
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_c13_ong: ',p_c13_ong
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_c13_agr: ',p_c13_agr
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_c13_wst: ',p_c13_wst
+     CALL wrf_message( trim(message) )
+     write(message,*) 'tracer index for p_c13_wet: ',p_c13_wet
+     CALL wrf_message( trim(message) )
+
+   END IF master_proc
+
     DO j=jts,jte
        DO i=its,ite
           !  3D anthropogenic fluxes

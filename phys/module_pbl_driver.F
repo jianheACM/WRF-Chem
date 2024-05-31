@@ -141,6 +141,8 @@ CONTAINS
 #if (WRF_CHEM == 1)
               ,mynn_chem_vertmx,chem,vd,nchem,kdvel                  &
      &        ,ndvel,num_vert_mix                                    &
+     &        ,emis_ant_ch4                                          & !JianHe
+
 #endif
 !
 ! FASDAS
@@ -784,6 +786,7 @@ CONTAINS
     REAL, INTENT(INOUT),  DIMENSION( ims:ime, kms:kme, jms:jme,nchem ) :: CHEM
     REAL, INTENT(IN)   ,  DIMENSION( ims:ime, kdvel, jms:jme, ndvel )  :: VD
     LOGICAL, INTENT(IN) :: mynn_chem_vertmx
+    REAL, INTENT(IN), DIMENSION(ims:ime, jms:jme) :: EMIS_ANT_CH4
 #endif
 
 !  LOCAL  VAR
@@ -1676,6 +1679,7 @@ CONTAINS
                    &ndvel=ndvel,num_vert_mix=num_vert_mix,               &
 !                   &FRP_MEAN=FRP_MEAN,EMIS_ANT_NO=EMIS_ANT_NO,           & !to be included soon
 !                   &fire_turb=enh_vermix,                                & !to be included soon
+                   &EMIS_ANT_CH4=EMIS_ANT_CH4,                           & ! JianHe
 #endif
                    &Tsq=tsq,Qsq=qsq,Cov=cov,                             &
                    &RUBLTEN=rublten,RVBLTEN=rvblten,RTHBLTEN=rthblten,   &

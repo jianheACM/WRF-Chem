@@ -204,7 +204,9 @@ SUBROUTINE chem_ch4_loss( imx,jmx,lmx,nmx,ndt1, tmp, airden, oh, tc1, tc2)
            rk2 = 0.0d0
 
            IF (oh(i,j,l) > 0.0) THEN
-                 rk2 = 2.43866D-12*EXP(-1775.0/tk) * oh(i,j,l)*airden(i,j,l)*f
+           ! JianHe: mean fractionation based on Saueressig et al. (2001), 
+           ! (medsink: (1.0039+1.0054)/2), hisink: 1.0039)
+                 rk2 = 2.45D-12/1.00465*EXP(-1775.0/tk) * oh(i,j,l)*airden(i,j,l)*f
            END IF
 
            chem2_oh = chem2_0 * EXP( -rk2  * REAL(ndt1) )

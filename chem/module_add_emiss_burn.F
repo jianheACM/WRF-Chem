@@ -448,7 +448,7 @@ CONTAINS
           enddo
           enddo
         endif
-      CASE (GHG_ISOTOPE) !JianHe
+    CASE (GHG_ISOTOPE) !JianHe, do not use for now
         if( biomass_burn_opt == BIOMASSB_GHG2 ) then
           do j=jts,jte
           do k=kts,kte

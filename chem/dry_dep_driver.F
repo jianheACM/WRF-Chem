@@ -20,6 +20,7 @@ CONTAINS
                xland,ash_fall,h2oaj,h2oai,nu3,ac3,cor3,asulf,ahno3,       &
                anh3,cvaro1,cvaro2,                                        &
                cvalk1,cvole1,cvapi1,cvapi2,cvlim1,cvlim2,dep_vel_o3,      &
+               dep_vel_ch4,emis_sfc_ch4,                                  & !JianHe
                ddlen,ddflx,                                               &
                emis_ant,ebu_in,                                           &
                sf_urban_physics,numgas,current_month,dvel,snowh,          & 
@@ -137,6 +138,9 @@ CONTAINS
    REAL,  DIMENSION( ims:ime , jms:jme )                   ,    &
           INTENT(OUT) ::                                      &
                                                      dep_vel_o3
+   REAL,  DIMENSION( ims:ime , jms:jme )                   ,    &
+          OPTIONAL,    INTENT(OUT) ::                                      &
+                                      dep_vel_ch4, emis_sfc_ch4  !JianHe: drydepvel for ch4
    REAL,  DIMENSION( ims:ime , jms:jme , num_chem )                   ,    &
           INTENT(INOUT) ::                                      &
                     ddlen, & !dry deposition length
@@ -249,6 +253,9 @@ CONTAINS
    ddvel(:,:,:) = 0.0
    idrydep_onoff = 0
 
+   if (present(dep_vel_ch4)) dep_vel_ch4(:,:)=0. !JianHe
+   if (present(emis_sfc_ch4)) emis_sfc_ch4(:,:)=0. !JianHe
+
    drydep_select: SELECT CASE(config_flags%gas_drydep_opt)
 
      CASE ( WESELY )
@@ -263,7 +270,6 @@ CONTAINS
            config_flags%chem_opt /= CHEM_TRACE2    .and.                  &
            config_flags%chem_opt /= CO2_TRACER     .and.                  & 
            config_flags%chem_opt /= GHG_TRACER     .and.                  &
-           config_flags%chem_opt /= GHG_ISOTOPE    .and.                  & !JianHe
            config_flags%chem_opt /= CHEM_VASH      .and.                  &
            config_flags%chem_opt /= CHEM_VOLC_4BIN .and.                  &
            config_flags%chem_opt /= DUST           .and.                  &
@@ -462,6 +468,23 @@ CONTAINS
           ! this is the default -- use aerodynamic resistance from 
           ! "default reference height" (currently 2 m) to surface
           aer_res(:,:) = aer_res_def(:,:)
+       end if
+
+       !JianHe: for ghg_isotope option
+       if (present(dep_vel_ch4) .and. config_flags%chem_opt==GHG_ISOTOPE) then
+           do j=jts,jte
+             do i=its,ite
+               dep_vel_ch4(i,j) = ddvel(i,j,p_ch4_ant)
+             enddo
+           enddo
+       end if
+
+       if (present(emis_sfc_ch4) .and. config_flags%chem_opt==GHG_ISOTOPE) then
+           do j=jts,jte
+             do i=its,ite
+               emis_sfc_ch4(i,j) = emis_ant(i,kts,j,p_e_ch4)
+             enddo
+           enddo
        end if
 
        idrydep_onoff = 1
@@ -719,6 +742,21 @@ CONTAINS
          endif
        endif
      endif
+ 
+!JianHe: increase mixing for high ch4 emissions
+    if (p_e_ch4 >= param_first_scalar )then
+       if (sf_urban_physics .eq. 0 ) then
+         if (emis_ant(i,kts,j,p_e_ch4) .gt. 0) then
+             ekmfull(kts+1:kts+10) = max(ekmfull(kts+1:kts+10),1.)
+         endif
+         if (emis_ant(i,kts,j,p_e_ch4) .gt. 500) then
+           ekmfull(kts+1:kte/2) = max(ekmfull(kts+1:kte/2),2.)
+         endif
+       endif
+    endif
+
+
+
 !!$! --- Mix the emissions up several layers when satellite data shows a wildfire
 !!$!     if ebu_in_e_co > 0., a wildfire exists so increase vertical mixing
 !     if (p_ebu_in_co > param_first_scalar )then

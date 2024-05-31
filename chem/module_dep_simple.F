@@ -882,6 +882,42 @@ tile_lon_loop : &
          end do
       end if
 
+!For GHG_ISOTOPE option
+
+!-----------------------------------------------------------
+! For CRI
+!-----------------------------------------------------------
+      if( config_flags%chem_opt == GHG_ISOTOPE) then
+         do j=jts,jte
+            do i=its,ite
+! need to add deposition rates for ghg_isotope species here
+               ddvel(i,j,p_ch4_bio)  = ddvel(i,j,p_ch4_ant)
+               ddvel(i,j,p_ch4_bbu)  = ddvel(i,j,p_ch4_ant)
+               ddvel(i,j,p_ch4_tst)  = ddvel(i,j,p_ch4_ant)
+               ddvel(i,j,p_ch4_ong)  = ddvel(i,j,p_ch4_ant)
+               ddvel(i,j,p_ch4_agr)  = ddvel(i,j,p_ch4_ant)
+               ddvel(i,j,p_ch4_wst)  = ddvel(i,j,p_ch4_ant)
+               ddvel(i,j,p_ch4_wet)  = ddvel(i,j,p_ch4_ant)
+               ddvel(i,j,p_ch4_bck)  = ddvel(i,j,p_ch4_ant)
+               ddvel(i,j,p_c13_ant)  = ddvel(i,j,p_ch4_ant)/1.018 !based on soil update
+               ddvel(i,j,p_c13_bio)  = ddvel(i,j,p_c13_ant)
+               ddvel(i,j,p_c13_bbu)  = ddvel(i,j,p_c13_ant)
+               ddvel(i,j,p_c13_tst)  = ddvel(i,j,p_c13_ant)
+               ddvel(i,j,p_c13_ong)  = ddvel(i,j,p_c13_ant)
+               ddvel(i,j,p_c13_agr)  = ddvel(i,j,p_c13_ant)
+               ddvel(i,j,p_c13_wst)  = ddvel(i,j,p_c13_ant)
+               ddvel(i,j,p_c13_wet)  = ddvel(i,j,p_c13_ant)
+               ddvel(i,j,p_c13_bck)  = ddvel(i,j,p_c13_ant)
+               ddvel(i,j,p_eth_bio)  = ddvel(i,j,p_eth_ant)
+               ddvel(i,j,p_eth_bbu)  = ddvel(i,j,p_eth_ant)
+               ddvel(i,j,p_eth_tst)  = ddvel(i,j,p_eth_ant)
+               ddvel(i,j,p_eth_ong)  = ddvel(i,j,p_eth_ant)
+               ddvel(i,j,p_eth_bck)  = ddvel(i,j,p_eth_ant)
+               end do
+         end do
+      end if
+
+
 
 END SUBROUTINE wesely_driver
 
@@ -2225,6 +2261,27 @@ is_cbm4_kpp : &
            f0(p_co2)    = 0.
            dvj(p_co2)   = 0.151
         end if
+
+        !JianHe: for ghg_isotope species
+        if (p_ch4_ant >= param_first_scalar) then
+           hstar(p_ch4_ant) = 1.50E-3
+           dhr(p_ch4_ant)   = 0.
+           f0(p_ch4_ant)    = 0.
+           dvj(p_ch4_ant)   = 0.250
+        end if
+        if (p_c13_ant >= param_first_scalar) then
+           hstar(p_c13_ant) = 1.50E-3
+           dhr(p_c13_ant)   = 0.
+           f0(p_c13_ant)    = 0.
+           dvj(p_c13_ant)   = 0.250
+        end if
+        if (p_eth_ant >= param_first_scalar) then
+           hstar(p_eth_ant) = 2.00E-3
+           dhr(p_eth_ant)   = 0.
+           f0(p_eth_ant)    = 0.
+           dvj(p_eth_ant)   = 0.189
+        end if
+
 !--------------------------------------------------
 !  FOLLOWING FOR RACM
 !--------------------------------------------------

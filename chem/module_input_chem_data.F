@@ -1940,7 +1940,7 @@ END SUBROUTINE bdy_chem_value_ghg
                    CALL bdy_chem_value_cam_mam(   &
                         chem(i,k,j), z(i,k,j), ic, config_flags, alt(i,k,j), convfac, g )
                 else if (i_bdy_method .eq. 666) then
-                   CALL bdy_chem_value_gcm_ghg (qv(i,k,j), chem(i,k,j),chem_bxs(j,k,1),chem_btxs(j,k,1),dt,ic)
+                   CALL bdy_chem_value_gcm_ghg (qv(i,k,j),chem(i,k,j),chem_bxs(j,k,1),chem_btxs(j,k,1),dt,ic)
                 else
                    chem(i,k,j) = chem_bv_def
                 endif
@@ -2012,7 +2012,7 @@ END SUBROUTINE bdy_chem_value_ghg
                    CALL bdy_chem_value_cam_mam(   &
                         chem(i,k,j), z(i,k,j), ic, config_flags, alt(i,k,j), convfac, g )
                 else if (i_bdy_method .eq. 666) then
-                   CALL bdy_chem_value_gcm_ghg (qv(i,k,j), chem(i,k,j),chem_bxe(j,k,1),chem_btxe(j,k,1),dt,ic)
+                   CALL bdy_chem_value_gcm_ghg (qv(i,k,j),chem(i,k,j),chem_bxe(j,k,1),chem_btxe(j,k,1),dt,ic)
                 else
                    chem(i,k,j) = chem_bv_def
                 endif

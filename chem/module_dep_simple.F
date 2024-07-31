@@ -2262,26 +2262,6 @@ is_cbm4_kpp : &
            dvj(p_co2)   = 0.151
         end if
 
-        !JianHe: for ghg_isotope species
-        if (p_ch4_ant >= param_first_scalar) then
-           hstar(p_ch4_ant) = 1.50E-3
-           dhr(p_ch4_ant)   = 0.
-           f0(p_ch4_ant)    = 0.
-           dvj(p_ch4_ant)   = 0.250
-        end if
-        if (p_c13_ant >= param_first_scalar) then
-           hstar(p_c13_ant) = 1.50E-3
-           dhr(p_c13_ant)   = 0.
-           f0(p_c13_ant)    = 0.
-           dvj(p_c13_ant)   = 0.250
-        end if
-        if (p_eth_ant >= param_first_scalar) then
-           hstar(p_eth_ant) = 2.00E-3
-           dhr(p_eth_ant)   = 0.
-           f0(p_eth_ant)    = 0.
-           dvj(p_eth_ant)   = 0.189
-        end if
-
 !--------------------------------------------------
 !  FOLLOWING FOR RACM
 !--------------------------------------------------
@@ -3957,6 +3937,29 @@ is_cbm4_kpp : &
 
        end DO
     end if is_cbm4_kpp
+
+
+    if( config_flags%chem_opt == GHG_ISOTOPE) then
+        !JianHe: for ghg_isotope species
+        if (p_ch4_ant >= param_first_scalar) then
+           hstar(p_ch4_ant) = 1.50E-3
+           dhr(p_ch4_ant)   = 0.
+           f0(p_ch4_ant)    = 0.
+           dvj(p_ch4_ant)   = 0.250
+        end if
+        if (p_c13_ant >= param_first_scalar) then
+           hstar(p_c13_ant) = 1.50E-3
+           dhr(p_c13_ant)   = 0.
+           f0(p_c13_ant)    = 0.
+           dvj(p_c13_ant)   = 0.250
+        end if
+        if (p_eth_ant >= param_first_scalar) then
+           hstar(p_eth_ant) = 2.00E-3
+           dhr(p_eth_ant)   = 0.
+           f0(p_eth_ant)    = 0.
+           dvj(p_eth_ant)   = 0.189
+        end if
+    end if
 
 
 

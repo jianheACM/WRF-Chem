@@ -266,7 +266,7 @@ state   real    e_isoprod       i+jf    emis_ant        1       Z       i5r     
 state   real    e_methacro      i+jf    emis_ant        1       Z       i5r      "E_METHACRO"    "METHACRO emissions"    "mol km^-2 hr^-1"
 state   real    e_mvk           i+jf    emis_ant        1       Z       i5r      "E_MVK" "MVK emissions" "mol km^-2 hr^-1"
 state   real    e_prod2         i+jf    emis_ant        1       Z       i5r      "E_PROD2"       "PROD2 emissions"       "mol km^-2 hr^-1"
-state   real    e_ch4           i+jf    emis_ant        1       Z       i5r      "E_CH4" "CH4 emissions" "mol km^-2 hr^-1"
+state   real    e_ch4           i+jf    emis_ant        1       Z       i5r      "E_CH4"         "CH4 emissions" "mol km^-2 hr^-1"
 state   real    e_bald          i+jf    emis_ant        1       Z       i5r      "E_BALD"        "BALD emissions"        "mol km^-2 hr^-1"
 state   real    e_hcooh         i+jf    emis_ant        1       Z       i5r      "E_HCOOH"       "HCOOH emissions"       "mol km^-2 hr^-1"
 state   real    e_cco_oh        i+jf    emis_ant        1       Z       i5r      "E_CCO_OH"      "CCO_OH emissions"      "mol km^-2 hr^-1"
@@ -275,22 +275,25 @@ state   real    e_rco_oh        i+jf    emis_ant        1       Z       i5r     
 # GHG anthropogenic emissions
 state   real    e_co2tst        i+jf    emis_ant        1       Z       i5       "E_CO2TST"      "Anthropogenic CO2 test fluxes"     "mol km^-2 hr^-1"
 state   real    e_cotst         i+jf    emis_ant        1       Z       i5       "E_COTST"       "Anthropogenic CO test fluxes"      "mol km^-2 hr^-1"
+state   real    e_ch4ant        i+jf    emis_ant        1       Z       i5r      "E_CH4ANT"      "Anthropogenic CH4 emissions"       "mol km^-2 hr^-1"
 state   real    e_ch4tst        i+jf    emis_ant        1       Z       i5r      "E_CH4TST"      "Anthropogenic CH4 test fluxes"     "mol km^-2 hr^-1"
 state   real    e_ch4ong        i+jf    emis_ant        1       Z       i5r      "E_CH4ONG"      "Oil and gas CH4 emissions"         "mol km^-2 hr^-1"
 state   real    e_ch4agr        i+jf    emis_ant        1       Z       i5r      "E_CH4AGR"      "Agricultural CH4 missions"         "mol km^-2 hr^-1"
 state   real    e_ch4wst        i+jf    emis_ant        1       Z       i5r      "E_CH4WST"      "Waste CH4 emissions"               "mol km^-2 hr^-1"
 state   real    e_ch4wet        i+jf    emis_ant        1       Z       i5r      "E_CH4WET"      "Wetland CH4 emissions"             "mol km^-2 hr^-1"
 state   real    e_ch4nat        i+jf    emis_ant        1       Z       i5r      "E_CH4NAT"      "Natural CH4 emissions"             "mol km^-2 hr^-1"
-state   real    e_c13tst        i+jf    emis_ant        1       Z       i5r      "E_C13TST"      "Anthropoenic C13 test fluxes"      "mol km^-2 hr^-1"
+state   real    e_c13           i+jf    emis_ant        1       Z       i5r      "E_C13"         "C13 emissions"                     "mol km^-2 hr^-1"
+state   real    e_c13tst        i+jf    emis_ant        1       Z       i5r      "E_C13TST"      "AnthropogenicC13 test flux"        "mol km^-2 hr^-1"
 state   real    e_c13ong        i+jf    emis_ant        1       Z       i5r      "E_C13ONG"      "Oil and gas C13 emissions"         "mol km^-2 hr^-1"
 state   real    e_c13agr        i+jf    emis_ant        1       Z       i5r      "E_C13AGR"      "Agricultural C13 missions"         "mol km^-2 hr^-1"
 state   real    e_c13wst        i+jf    emis_ant        1       Z       i5r      "E_C13WST"      "Waste C13 emissions"               "mol km^-2 hr^-1"
 state   real    e_c13wet        i+jf    emis_ant        1       Z       i5r      "E_C13WET"      "Wetland C13 emissions"             "mol km^-2 hr^-1"
 state   real    e_c13nat        i+jf    emis_ant        1       Z       i5r      "E_C13NAT"      "Natural C13 emissions"             "mol km^-2 hr^-1"
-state   real    e_c13ant        i+jf    emis_ant        1       Z       i5r      "E_C13ANT"      "Anthropogenic C13 emissions"             "mol km^-2 hr^-1"
-state   real    e_ethnat        i+jf    emis_ant        1       Z       i5r      "E_ETHNAT"      "Natural C2H6 emissions"             "mol km^-2 hr^-1"
-state   real    e_ethong        i+jf    emis_ant        1       Z       i5r      "E_ETHONG"      "Oil and gas C2H6 emissions"             "mol km^-2 hr^-1"
-state   real    e_ethtst        i+jf    emis_ant        1       Z       i5r      "E_ETHTST"      "Anthropoenic C2H6 test fluxes"      "mol km^-2 hr^-1"
+state   real    e_c13ant        i+jf    emis_ant        1       Z       i5r      "E_C13ANT"      "Anthropogenic C13 emissions"       "mol km^-2 hr^-1"
+state   real    e_ethant        i+jf    emis_ant        1       Z       i5r      "E_ETHANT"      "Anthropogenic C2H6 emissions"      "mol km^-2 hr^-1"
+state   real    e_ethnat        i+jf    emis_ant        1       Z       i5r      "E_ETHNAT"      "Natural C2H6 emissions"            "mol km^-2 hr^-1"
+state   real    e_ethong        i+jf    emis_ant        1       Z       i5r      "E_ETHONG"      "Oil and gas C2H6 emissions"        "mol km^-2 hr^-1"
+state   real    e_ethtst        i+jf    emis_ant        1       Z       i5r      "E_ETHTST"      "Anthropoenic C2H6 test fluxes"     "mol km^-2 hr^-1"
 
 
 
@@ -4129,7 +4132,7 @@ package   ecb05_opt2      emiss_opt==15                   -             emis_ant
 # Anthropogenic CO2, CO and CH4 emissions:
 package   eco2            emiss_opt==16                  -             emis_ant:e_co2,e_co2tst,e_co
 package   eghg            emiss_opt==17                  -             emis_ant:e_co2,e_co2tst,e_co,e_cotst,e_ch4,e_ch4tst
-package   eghg2           emiss_opt==18                  -             emis_ant:e_eth,e_ethnat,e_ethong,e_ethtst,e_ch4,e_ch4tst,e_ch4ong,e_ch4agr,e_ch4wst,e_ch4wet,e_ch4nat,e_c13ant,e_c13tst,e_c13ong,e_c13agr,e_c13wst,e_c13wet,e_c13nat
+package   eghg2           emiss_opt==18                  -             emis_ant:e_eth,e_ethant,e_ethnat,e_ethong,e_ethtst,e_ch4,e_ch4ant,e_ch4tst,e_ch4ong,e_ch4agr,e_ch4wst,e_ch4wet,e_ch4nat,e_c13,e_c13ant,e_c13tst,e_c13ong,e_c13agr,e_c13wst,e_c13wet,e_c13nat
 package   ecrimech        emiss_opt==19                   -             emis_ant:e_co,e_no,e_no2,e_so2,e_nh3,e_c2h6,e_c3h8,e_c2h4,e_c3h6,e_c5h8,e_tm123b,e_tm124b,e_tm135b,e_oethtol,e_methtol,e_pethtol,e_dime35eb,e_hcho,e_ch3cho,e_c2h5cho,e_ket,e_mek,e_ch3oh,e_c2h5oh,e_c2h2,e_benzene,e_nc4h10,e_toluene,e_oxyl,e_tbut2ene,e_ch3co2h
 package   ecrimechtno     emiss_opt==20                  -             emis_ant:e_co,e_no,e_no2,e_so2,e_nh3,e_c2h6,e_c3h8,e_c2h4,e_c3h6,e_c5h8,e_tm123b,e_tm124b,e_tm135b,e_oethtol,e_methtol,e_pethtol,e_dime35eb,e_hcho,e_ch3cho,e_c2h5cho,e_ket,e_mek,e_ch3oh,e_c2h5oh,e_c2h2,e_benzene,e_nc4h10,e_toluene,e_oxyl,e_tbut2ene,e_ch3co2h,e_bc_1,e_ec_1_25,e_ec_25_10,e_oc_dom,e_oc_tra,e_oc_25_10,e_pm25,e_oin_25,e_oin_10
 #

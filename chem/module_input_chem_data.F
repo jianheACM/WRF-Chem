@@ -2378,8 +2378,12 @@ END SUBROUTINE bdy_chem_value_ghg
       !print*,'after',chem
       RETURN
   END SUBROUTINE bdy_chem_value_gcm
+
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!JianHe
+!JianHe: subroutine to read in CarbonTracker-CH4 as bdy
+!Note CarbonTracker-CH4 in dry air ppb, which is converted to moist ppm
+!in wrfchembc source code
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   SUBROUTINE bdy_chem_value_gcm_ghg (qv, chem, chem_b, chem_bt, dt,ic)
 
@@ -2409,7 +2413,9 @@ END SUBROUTINE bdy_chem_value_ghg
         chem = 0.1
     else if( ic==p_ch4_bck .OR. ic==p_ch4_ant .OR. ic==p_ch4_bbu .OR. ic==p_ch4_tst &
        .OR. ic==p_ch4_bio .OR. ic==p_ch4_ong .OR. ic==p_ch4_agr .OR. ic==p_ch4_wst &
-       .OR. ic==p_ch4_wet ) then
+       .OR. ic==p_ch4_wet .OR. ic==p_c13_bck .OR. ic==p_c13_ant .OR. ic==p_c13_bbu & 
+       .OR. ic==p_c13_tst .OR. ic==p_c13_bio .OR. ic==p_c13_ong .OR. ic==p_c13_agr &
+       .OR. ic==p_c13_wst .OR. ic==p_c13_wet ) then
        !CarbonTracker-CH4 bdy in dry air mole fractions
         chem=max(epsilc,(chem_b + chem_bt * dt)/(1.+qv/0.622))
     else

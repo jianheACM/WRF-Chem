@@ -196,7 +196,7 @@ master_proc : &
           DO k=kts,min(config_flags%kemit,kte)
              conv_rho=8.0461e-6/rho_phy(i,k,j)*dtstep/dz8w(i,k,j)  !8.0461e-6=molar_mass(air)/3600, [g/mol/s]
              !We read ant from GRAPPES
-             chem(i,k,j,p_ch4_ant)= chem(i,k,j,p_ch4_ant) + conv_rho*emis_ant(i,k,j,p_e_ch4)
+             chem(i,k,j,p_ch4_ant)= chem(i,k,j,p_ch4_ant) + conv_rho*emis_ant(i,k,j,p_e_ch4ant)
              chem(i,k,j,p_ch4_tst)= chem(i,k,j,p_ch4_tst) + conv_rho*emis_ant(i,k,j,p_e_ch4tst)  ! test ONG flux
              chem(i,k,j,p_ch4_ong)= chem(i,k,j,p_ch4_ong) + conv_rho*emis_ant(i,k,j,p_e_ch4ong)
              chem(i,k,j,p_ch4_agr)= chem(i,k,j,p_ch4_agr) + conv_rho*emis_ant(i,k,j,p_e_ch4agr)
@@ -209,7 +209,7 @@ master_proc : &
              chem(i,k,j,p_c13_wst)= chem(i,k,j,p_c13_wst) + conv_rho*emis_ant(i,k,j,p_e_c13wst)
              chem(i,k,j,p_c13_wet)= chem(i,k,j,p_c13_wet) + conv_rho*emis_ant(i,k,j,p_e_c13wet)  ! we use offline
 
-             chem(i,k,j,p_eth_ant)= chem(i,k,j,p_eth_ant)  + conv_rho*emis_ant(i,k,j,p_e_eth)
+             chem(i,k,j,p_eth_ant)= chem(i,k,j,p_eth_ant)  + conv_rho*emis_ant(i,k,j,p_e_ethant)
              chem(i,k,j,p_eth_ong)= chem(i,k,j,p_eth_ong)  + conv_rho*emis_ant(i,k,j,p_e_ethong)             
              chem(i,k,j,p_eth_tst)= chem(i,k,j,p_eth_tst)  + conv_rho*emis_ant(i,k,j,p_e_ethtst)
   

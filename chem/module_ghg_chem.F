@@ -84,9 +84,12 @@ CONTAINS
           call chmdrv_sink( imx,jmx,lmx,nmx,cmx,tmx,&
                dt, tmp, airden, oh_in, tc1, tc2, tc4)
 
+          !Currently we do not include fire emissions for all the tracers
+          !tracer_bbu will be same as tracer_bck but without chemical loss
+          
           chem(i,k,j,p_ch4_ant)=tc1(1,1,1,1)*1.e6  ! ppm
           chem(i,k,j,p_ch4_bio)=tc1(1,1,1,2)*1.e6
-          chem(i,k,j,p_ch4_bbu)=tc1(1,1,1,3)*1.e6
+          !chem(i,k,j,p_ch4_bbu)=tc1(1,1,1,3)*1.e6
           chem(i,k,j,p_ch4_tst)=tc1(1,1,1,4)*1.e6
           chem(i,k,j,p_ch4_ong)=tc1(1,1,1,5)*1.e6
           chem(i,k,j,p_ch4_agr)=tc1(1,1,1,6)*1.e6
@@ -96,7 +99,7 @@ CONTAINS
   
           chem(i,k,j,p_c13_ant)=tc2(1,1,1,1)*1.e6  ! ppm
           chem(i,k,j,p_c13_bio)=tc2(1,1,1,2)*1.e6
-          chem(i,k,j,p_c13_bbu)=tc2(1,1,1,3)*1.e6
+          !chem(i,k,j,p_c13_bbu)=tc2(1,1,1,3)*1.e6
           chem(i,k,j,p_c13_tst)=tc2(1,1,1,4)*1.e6
           chem(i,k,j,p_c13_ong)=tc2(1,1,1,5)*1.e6
           chem(i,k,j,p_c13_agr)=tc2(1,1,1,6)*1.e6
@@ -106,7 +109,7 @@ CONTAINS
 
           chem(i,k,j,p_eth_ant)=tc4(1,1,1,1)*1.e6  ! ppm
           chem(i,k,j,p_eth_bck)=tc4(1,1,1,2)*1.e6
-          chem(i,k,j,p_eth_bbu)=tc4(1,1,1,3)*1.e6
+          !chem(i,k,j,p_eth_bbu)=tc4(1,1,1,3)*1.e6
           chem(i,k,j,p_eth_tst)=tc4(1,1,1,4)*1.e6
           chem(i,k,j,p_eth_bio)=tc4(1,1,1,5)*1.e6
           chem(i,k,j,p_eth_ong)=tc4(1,1,1,6)*1.e6
@@ -173,7 +176,10 @@ SUBROUTINE chem_ch4_loss( imx,jmx,lmx,nmx,ndt1, tmp, airden, oh, tc1, tc2)
   REAL*8, DIMENSION(nmx):: chem1_0, chem1_oh, chem2_0, chem2_oh
   
   ! executable statements
-  
+ 
+  rk1 = 0.0d0
+  rk2 = 0.0d0
+ 
   DO l = 1,lmx
 !CMIC$ doall autoscope
      DO j = 1,jmx
@@ -186,9 +192,6 @@ SUBROUTINE chem_ch4_loss( imx,jmx,lmx,nmx,ndt1, tmp, airden, oh, tc1, tc2)
 ! ****************************************************************************
 ! *  (1) CH4 + OH:  RK1                                                      *
 ! ****************************************************************************
-
-           rk1 = 0.0d0
-           
            IF (oh(i,j,l) > 0.0) THEN
               !rate constant in cm^3 molec^-1 s^-1 for 2nd order
               !oh is in mol/mol, convert to molecules/cm3
@@ -201,8 +204,6 @@ SUBROUTINE chem_ch4_loss( imx,jmx,lmx,nmx,ndt1, tmp, airden, oh, tc1, tc2)
 ! ****************************************************************************
 ! *  (2) C13 + OH:  RK2                                                      *
 ! ****************************************************************************
-           rk2 = 0.0d0
-
            IF (oh(i,j,l) > 0.0) THEN
            ! JianHe: mean fractionation based on Saueressig et al. (2001), 
            ! (medsink: (1.0039+1.0054)/2), hisink: 1.0039)
